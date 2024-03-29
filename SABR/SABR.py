@@ -14,6 +14,7 @@ class SABR_path:
     T = None
     vol_paths = None
     futures_paths = None
+    time_points = None
 
     def __init__(self, F0, alpha, beta, rho, nu, steps, N, T=1, seed=None):
         self.F0 = F0
@@ -26,6 +27,7 @@ class SABR_path:
         self.T = T
         self.seed = seed
         self.create_paths()
+        self.time_points = [self.T * x / self.steps for x in range(0, self.steps + 1)]
 
     def get_parameters(self):
         return {
@@ -76,12 +78,12 @@ class SABR_path:
         for j in range(i):
             if vol:
                 plt.plot(
-                    [self.T * x / self.steps for x in range(0, self.steps + 1)],
+                    self.time_points,
                     self.vol_paths[:, j]
                 )
             else:
                 plt.plot(
-                    [self.T * x / self.steps for x in range(0, self.steps + 1)],
+                    self.time_points,
                     self.futures_paths[:, j]
                 )
         if vol:
@@ -91,10 +93,26 @@ class SABR_path:
 
         plt.show()
 
-        def get_price():
-            pass
+    def BS_pricer(self, F, K, sigma, t, r, call=True):
+        tau = self.T - t
+        d1 = (1 / (sigma * np.sqrt(tau))) * (np.log(F / K) * 0.5 * sigma ^ 2 * tau)
+        d2 = d1 - sigma * np.sqrt(tau)
+        D = np.exp(-r * tau)  # TODO: discounting method might change
+        if call:
+            return D * (np.random.normal(d1) * F - np.random.normal(d2) * K)
+        elif not call:
+            return D * (np.random.normal(-d2) * K - np.random.normal(-d1) * F)
+        else:
+            raise ValueError("You must specify 'call' correctly! True or False")
+
+    def get_price(self, step, call=True):
+        if (step > self.steps or step < 0) or type(step) != type(1):
+            raise ValueError("You must specify 'step' correctly! Integer between 0 and " + str(self.steps))
+        return self.BS_pricer(self.time_points[step], call)
 
 
 path = SABR_path(150, 0.4, 1, 0.5, 0.05, 100, 10)
 path.plot_paths(vol=True)
+print(path.get_price(50))
+
 path.plot_paths()
