@@ -10,6 +10,7 @@ class SABR_model:
     beta = None  # shape parameter
     rho = None  # correlation between BMs
     nu = None  # volvol
+    r = None  # interest rate
     steps = None  # number of time steps
     N = None  # number of simulated paths
     T = None  # time of maturity
@@ -17,13 +18,14 @@ class SABR_model:
     futures_paths = None  # N*steps array of futures paths
     time_points = None  # list of time points between 0 and T
 
-    def __init__(self, F0, alpha, beta, rho, nu, steps, N, T=1, seed=None):
+    def __init__(self, F0, alpha, beta, rho, nu, r, steps, N, T=1, seed=None):
         # Initializer
         self.F0 = F0
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
         self.nu = nu
+        self.r = r
         self.steps = steps
         self.N = N
         self.T = T
@@ -39,12 +41,13 @@ class SABR_model:
             "rho": self.rho,
             "nu": self.nu,
             "f": self.F0,
+            "r": self.r,
             "steps": self.steps,
             "N": self.N,
             "T": self.T
         }
 
-    def set_parameters(self, F0, alpha, beta, rho, nu, steps, N, T=1, seed=None):
+    def set_parameters(self, F0, alpha, beta, rho, nu, r, steps, N, T=1, seed=None):
         # alter parameters of object and create new paths
         self.seed = seed
         self.F0 = F0
@@ -52,6 +55,7 @@ class SABR_model:
         self.beta = beta
         self.rho = rho
         self.nu = nu
+        self.r = r
         self.steps = steps
         self.N = N
         self.T = T
@@ -103,27 +107,32 @@ class SABR_model:
         # helper function for the SABR sigma formula
         return np.log((np.sqrt(1 - 2 * self.rho * z + (z ** 2)) + z - self.rho) / (1 - self.rho))
 
-    def sigma(self, F, K, tau):
+    def sigma(self, F, K, tau, alpha_new):
         # SABR sigma formula
-        Z = (self.nu / self.alpha) * ((F * K) ** ((1 - self.beta) / 2)) * np.log(F / K)
-        f1 = self.alpha / (
+        Z = (self.nu / alpha_new) * ((F * K) ** ((1 - self.beta) / 2)) * np.log(F / K)
+        f1 = alpha_new / (
                 ((F * K) ** ((1 - self.beta) / 2)) * (
                 1 + (((1 - self.beta) ** 2) / 24) * (np.log(F / K) ** 2) + (((1 - self.beta) ** 4) / 1920) * (
                 np.log(F / K) ** 4)))
         f2 = Z / self.x(Z)
-        f3 = tau * (1 + (((1 - self.beta) ** 2) / 24) * ((self.alpha ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
-                self.rho * self.beta * self.nu * self.alpha) / ((F * K) ** ((1 - self.beta) / 2)) + (self.nu ** 2) * (
+        f3 = tau * (1 + (((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
+                self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (self.nu ** 2) * (
                             2 - 3 * (self.rho ** 2)) / 24)
         return f1 * f2 * f3
 
-    def BS_pricer(self, F, K, t, r, call=True, sigma=None):
+    def sigma_prime(self, F, K, tau, alpha_new, increment=1 / 10000):
+        # numerical derivative of SABR sigma formula
+        eps = F * increment
+        return (self.sigma(F + eps, K, tau, alpha_new) - self.sigma(F - eps, K, tau, alpha_new)) / (2 * eps)
+
+    def BS_pricer(self, F, K, t, alpha_new, call=True, sigma=None):
         # BS pricer for European call or put options
         tau = self.T - t
         if type(sigma) == type(None):
-            sigma = self.sigma(F, K, tau)
+            sigma = self.sigma(F, K, tau, alpha_new)
         d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
         d2 = d1 - sigma * np.sqrt(tau)
-        D = np.exp(-r * tau)  # TODO: discounting method might change
+        D = np.exp(-self.r * tau)  # TODO: discounting method might change
         if call:
             return D * (sp.stats.norm.cdf(d1) * F - sp.stats.norm.cdf(d2) * K)
         elif not call:
@@ -131,20 +140,51 @@ class SABR_model:
         else:
             raise ValueError("You must specify 'call' correctly! True or False")
 
-    def get_price(self, K, step, r, call=True, sigma=False):
+    def get_price(self, K, step, call=True, sigma=False):
         # gets European call/put price given "true" volatility or SABR_model volatility
         if (step > self.steps or step < 0) or type(step) != type(1):
             raise ValueError("You must specify 'step' correctly! Integer between 0 and " + str(self.steps))
         if sigma:
-            return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], r, call,
+            return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], self.vol_paths[step, :], call,
                                   sigma=self.vol_paths[step, :])
-        return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], r, call)
-    def get_delta(self):
-        # gets delta hedging ratio according to SABR-model
-        pass # TODO
+        return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], self.vol_paths[step, :], call)
+
+    def BS_delta(self, d1, tau, call):
+        # BS delta for European call or put options
+        if call:
+            return np.exp(-self.r * tau) * sp.stats.norm.cdf(d1)
+        elif not call:
+            return np.exp(-self.r * tau) * (-sp.stats.norm.cdf(-d1))
+
+    def BS_vega(self, F, d1, tau):
+        # BS vega for European call or put options
+        return F * np.exp(-self.r * tau) * sp.stats.norm.pdf(d1) * np.sqrt(tau)
+
+    def get_delta(self, K, step, call=True, sigma=False):
+        # gets delta hedging ratio according to "true" volatility or SABR-model
+        F = self.futures_paths[step, :]
+        tau = self.T - self.time_points[step]
+        if sigma:
+            sigma = self.vol_paths[step, :]
+            d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
+            return self.BS_delta(d1, tau, call)
+        else:
+            sigma = self.sigma(F, K, tau, self.vol_paths[step, :])
+        d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
+        BSd = self.BS_delta(d1, tau, call)
+        BSv = self.BS_vega(F, d1, tau)
+        sigma_pr = self.sigma_prime(F, K, tau, self.vol_paths[step, :])
+        return BSd + BSv * sigma_pr
 
 
-model = SABR_model(150, 0.4, 1, 0.5, 0.05, 100, 10, seed=10538)
-print(model.get_price(150, 50, 0.04))  # here we use the SABR pricing formula
-print(model.get_price(150, 50, 0.04, sigma=True))  # here we use the "true" volatility
+model = SABR_model(150, 0.4, 1, 0.5, 0.05, 0.04, 100, 10, seed=10538)
+print(model.get_price(150, 50))  # here we use the SABR pricing formula
+print(model.get_price(150, 50, sigma=True))  # "naive" BS price
+
+print(model.get_delta(150, 50))  # here we use the SABR delta formula
+print(model.get_delta(150, 50, sigma=True))  # "naive" BS delta
 model.plot_paths()
+
+# Note:
+# one can create a BS model by specifying nu=0 --> constant volatility
+# and using sigma=True for pricing and delta
