@@ -1,8 +1,9 @@
+import scipy as sp
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-class SABR_path:
+class SABR_model:
     seed = None
     F0 = None
     alpha = None
@@ -95,24 +96,23 @@ class SABR_path:
 
     def BS_pricer(self, F, K, sigma, t, r, call=True):
         tau = self.T - t
-        d1 = (1 / (sigma * np.sqrt(tau))) * (np.log(F / K) * 0.5 * sigma ^ 2 * tau)
+        d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
         d2 = d1 - sigma * np.sqrt(tau)
         D = np.exp(-r * tau)  # TODO: discounting method might change
         if call:
-            return D * (np.random.normal(d1) * F - np.random.normal(d2) * K)
+            return D * (sp.stats.norm.cdf(d1) * F - sp.stats.norm.cdf(d2) * K)
         elif not call:
-            return D * (np.random.normal(-d2) * K - np.random.normal(-d1) * F)
+            return D * (sp.stats.norm.cdf(-d2) * K - sp.stats.norm.cdf(-d1) * F)
         else:
             raise ValueError("You must specify 'call' correctly! True or False")
 
-    def get_price(self, step, call=True):
+    def get_price(self, K, step, r, call=True):
         if (step > self.steps or step < 0) or type(step) != type(1):
             raise ValueError("You must specify 'step' correctly! Integer between 0 and " + str(self.steps))
-        return self.BS_pricer(self.time_points[step], call)
+        return self.BS_pricer(self.futures_paths[step,:], K, self.vol_paths[step,:], self.time_points[step], r, call)
 
 
-path = SABR_path(150, 0.4, 1, 0.5, 0.05, 100, 10)
-path.plot_paths(vol=True)
-print(path.get_price(50))
+model = SABR_model(150, 0.4, 1, 0.5, 0.05, 100, 10)
+print(model.get_price(150, 50, 0.04))
 
-path.plot_paths()
+model.plot_paths()
