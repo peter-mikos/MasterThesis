@@ -94,8 +94,24 @@ class SABR_model:
 
         plt.show()
 
-    def BS_pricer(self, F, K, sigma, t, r, call=True):
+    def x(self, z):
+        return np.log((np.sqrt(1 - 2 * self.rho * z + (z ** 2)) + z - self.rho) / (1 - self.rho))
+
+    def sigma(self, F, K, tau):
+        Z = (self.nu / self.alpha) * ((F * K) ** ((1 - self.beta) / 2)) * np.log(F / K)
+        f1 = self.alpha / (
+                ((F * K) ** ((1 - self.beta) / 2)) * (
+                1 + (((1 - self.beta) ** 2) / 24) * (np.log(F / K) ** 2) + (((1 - self.beta) ** 4) / 1920) * (
+                np.log(F / K) ** 4)))
+        f2 = Z / self.x(Z)
+        f3 = tau * (1 + (((1 - self.beta) ** 2) / 24) * ((self.alpha ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
+                self.rho * self.beta * self.nu * self.alpha) / ((F * K) ** ((1 - self.beta) / 2)) + (self.nu ** 2) * (
+                            2 - 3 * (self.rho ** 2)) / 24)
+        return f1 * f2 * f3
+
+    def BS_pricer(self, F, K, t, r, call=True):
         tau = self.T - t
+        sigma = self.sigma(F, K, tau)
         d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
         d2 = d1 - sigma * np.sqrt(tau)
         D = np.exp(-r * tau)  # TODO: discounting method might change
@@ -109,10 +125,10 @@ class SABR_model:
     def get_price(self, K, step, r, call=True):
         if (step > self.steps or step < 0) or type(step) != type(1):
             raise ValueError("You must specify 'step' correctly! Integer between 0 and " + str(self.steps))
-        return self.BS_pricer(self.futures_paths[step,:], K, self.vol_paths[step,:], self.time_points[step], r, call)
+        return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], r, call)
 
 
-model = SABR_model(150, 0.4, 1, 0.5, 0.05, 100, 10)
+model = SABR_model(150, 0.4, 1, 0.5, 0.05, 100, 10, seed=10538)
+print(model.get_price(150, 50, 0.04, call=False))
 print(model.get_price(150, 50, 0.04))
-
 model.plot_paths()
