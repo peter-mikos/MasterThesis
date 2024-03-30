@@ -109,9 +109,10 @@ class SABR_model:
                             2 - 3 * (self.rho ** 2)) / 24)
         return f1 * f2 * f3
 
-    def BS_pricer(self, F, K, t, r, call=True):
+    def BS_pricer(self, F, K, t, r, call=True, sigma=None):
         tau = self.T - t
-        sigma = self.sigma(F, K, tau)
+        if type(sigma) == type(None):
+            sigma = self.sigma(F, K, tau)
         d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
         d2 = d1 - sigma * np.sqrt(tau)
         D = np.exp(-r * tau)  # TODO: discounting method might change
@@ -122,13 +123,16 @@ class SABR_model:
         else:
             raise ValueError("You must specify 'call' correctly! True or False")
 
-    def get_price(self, K, step, r, call=True):
+    def get_price(self, K, step, r, call=True, sigma=False):
         if (step > self.steps or step < 0) or type(step) != type(1):
             raise ValueError("You must specify 'step' correctly! Integer between 0 and " + str(self.steps))
+        if sigma:
+            return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], r, call,
+                                  sigma=self.vol_paths[step, :])
         return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], r, call)
 
 
 model = SABR_model(150, 0.4, 1, 0.5, 0.05, 100, 10, seed=10538)
-print(model.get_price(150, 50, 0.04, call=False))
-print(model.get_price(150, 50, 0.04))
+print(model.get_price(150, 50, 0.04))  # here we use the SABR pricing formula
+print(model.get_price(150, 50, 0.04, sigma=True))  # here we use the "true" volatility
 model.plot_paths()
