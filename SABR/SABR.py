@@ -4,20 +4,21 @@ import matplotlib.pyplot as plt
 
 
 class SABR_model:
-    seed = None
-    F0 = None
-    alpha = None
-    beta = None
-    rho = None
-    nu = None
-    steps = None
-    N = None
-    T = None
-    vol_paths = None
-    futures_paths = None
-    time_points = None
+    seed = None  # seed for replicability
+    F0 = None  # initial futures value
+    alpha = None  # initial volatility value
+    beta = None  # shape parameter
+    rho = None  # correlation between BMs
+    nu = None  # volvol
+    steps = None  # number of time steps
+    N = None  # number of simulated paths
+    T = None  # time of maturity
+    vol_paths = None  # N*steps array of volatility paths
+    futures_paths = None  # N*steps array of futures paths
+    time_points = None  # list of time points between 0 and T
 
     def __init__(self, F0, alpha, beta, rho, nu, steps, N, T=1, seed=None):
+        # Initializer
         self.F0 = F0
         self.alpha = alpha
         self.beta = beta
@@ -31,6 +32,7 @@ class SABR_model:
         self.time_points = [self.T * x / self.steps for x in range(0, self.steps + 1)]
 
     def get_parameters(self):
+        # returns parameters as dictionary
         return {
             "alpha": self.alpha,
             "beta": self.beta,
@@ -38,11 +40,12 @@ class SABR_model:
             "nu": self.nu,
             "f": self.F0,
             "steps": self.steps,
-            "N": self.steps,
+            "N": self.N,
             "T": self.T
         }
 
     def set_parameters(self, F0, alpha, beta, rho, nu, steps, N, T=1, seed=None):
+        # alter parameters of object and create new paths
         self.seed = seed
         self.F0 = F0
         self.alpha = alpha
@@ -55,6 +58,7 @@ class SABR_model:
         self.create_paths(self)
 
     def create_paths(self):
+        # creates paths given the model parameters
         if type(self.seed) != type(None):
             np.random.seed(self.seed)
         futures = np.zeros((self.steps + 1, self.N))
@@ -74,6 +78,7 @@ class SABR_model:
         self.futures_paths = futures
 
     def plot_paths(self, i=5, vol=False):
+        # plots i futures/volatility paths
         if self.N < i:
             i = self.N
         for j in range(i):
@@ -95,9 +100,11 @@ class SABR_model:
         plt.show()
 
     def x(self, z):
+        # helper function for the SABR sigma formula
         return np.log((np.sqrt(1 - 2 * self.rho * z + (z ** 2)) + z - self.rho) / (1 - self.rho))
 
     def sigma(self, F, K, tau):
+        # SABR sigma formula
         Z = (self.nu / self.alpha) * ((F * K) ** ((1 - self.beta) / 2)) * np.log(F / K)
         f1 = self.alpha / (
                 ((F * K) ** ((1 - self.beta) / 2)) * (
@@ -110,6 +117,7 @@ class SABR_model:
         return f1 * f2 * f3
 
     def BS_pricer(self, F, K, t, r, call=True, sigma=None):
+        # BS pricer for European call or put options
         tau = self.T - t
         if type(sigma) == type(None):
             sigma = self.sigma(F, K, tau)
@@ -124,12 +132,16 @@ class SABR_model:
             raise ValueError("You must specify 'call' correctly! True or False")
 
     def get_price(self, K, step, r, call=True, sigma=False):
+        # gets European call/put price given "true" volatility or SABR_model volatility
         if (step > self.steps or step < 0) or type(step) != type(1):
             raise ValueError("You must specify 'step' correctly! Integer between 0 and " + str(self.steps))
         if sigma:
             return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], r, call,
                                   sigma=self.vol_paths[step, :])
         return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], r, call)
+    def get_delta(self):
+        # gets delta hedging ratio according to SABR-model
+        pass # TODO
 
 
 model = SABR_model(150, 0.4, 1, 0.5, 0.05, 100, 10, seed=10538)
