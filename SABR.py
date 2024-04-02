@@ -176,13 +176,13 @@ class SABR_model:
         return BSd + BSv * sigma_pr
 
 
-model = SABR_model(150, 0.4, 1, 0.5, 0.05, 0.04, 100, 10, seed=10538)
-print(model.get_price(150, 50))  # here we use the SABR pricing formula
-print(model.get_price(150, 50, sigma=True))  # "naive" BS price
+#model = SABR_model(150, 0.4, 1, 0.5, 0.05, 0.04, 100, 10, seed=10538)
+#print(model.get_price(150, 50))  # here we use the SABR pricing formula
+#print(model.get_price(150, 50, sigma=True))  # "naive" BS price
 
-print(model.get_delta(150, 50))  # here we use the SABR delta formula
-print(model.get_delta(150, 50, sigma=True))  # "naive" BS delta
-model.plot_paths()
+#print(model.get_delta(150, 50))  # here we use the SABR delta formula
+#print(model.get_delta(150, 50, sigma=True))  # "naive" BS delta
+#model.plot_paths()
 
 # Note:
 # one can create a BS model by specifying nu=0 --> constant volatility
