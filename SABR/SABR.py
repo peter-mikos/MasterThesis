@@ -120,9 +120,8 @@ class SABR_model:
                             2 - 3 * (self.rho ** 2)) / 24)
         return f1 * f2 * f3
 
-    def sigma_prime(self, F, K, tau, alpha_new, increment=1 / 10000):
+    def sigma_prime(self, F, K, tau, alpha_new, eps=1 / 10000):
         # numerical derivative of SABR sigma formula
-        eps = F * increment
         return (self.sigma(F + eps, K, tau, alpha_new) - self.sigma(F - eps, K, tau, alpha_new)) / (2 * eps)
 
     def BS_pricer(self, F, K, t, alpha_new, call=True, sigma=None):
