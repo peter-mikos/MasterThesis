@@ -114,12 +114,17 @@ class Deep_Hedge:
         elif tp == "h":
             self.model_hedge.summary()
 
-    def train(self, batch_size=200, epochs=20, optimizer="adam", loss='mean_squared_error', learning_rate=0.001):
+    def train(self, batch_size=200, epochs=20, optimizer="adam", loss='mean_squared_error', learning_rate=None):
         if optimizer == "adam":
-            self.model_wealth.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss=loss)
+            # TODO: learning rate
+            self.model_wealth.compile(optimizer=optimizer, loss=loss)
         elif optimizer == "SGD":
             self.model_wealth.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate), loss=loss)
         self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs)
 
-    def predict(self):
-        self.model_wealth.predict(x=self.xtest)
+    def loss_test(self):
+        pr = self.model_wealth.predict(x=self.xtest)
+        self.test_loss = np.mean((self.ytest - pr) ** 2)
+        self.std_err = np.std(self.ytest - pr)
+        print("Loss: " + str(self.test_loss) + "\n" +
+              "Standard Error: " + str(self.std_err))

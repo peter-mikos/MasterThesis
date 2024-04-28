@@ -124,6 +124,13 @@ class SABR_model:
         # numerical derivative of SABR sigma formula
         return (self.sigma(F + eps, K, tau, alpha_new) - self.sigma(F - eps, K, tau, alpha_new)) / (2 * eps)
 
+    def payoff(self, K, tp="european", call=True):
+        if tp == "european":
+            if call:
+                return np.maximum(self.futures_paths[-1, :] - K, 0)
+            else:
+                return np.maximum(K - self.futures_paths[-1, :], 0)
+
     def BS_pricer(self, F, K, t, alpha_new, call=True, sigma=None):
         # BS pricer for European call or put options
         tau = self.T - t
