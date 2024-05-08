@@ -109,24 +109,19 @@ class SABR_model:
 
     def sigma(self, F, K, tau, alpha_new):
         # SABR sigma formula
-        if F != K:
-            Z = (self.nu / alpha_new) * ((F * K) ** ((1 - self.beta) / 2)) * np.log(F / K)
-            f1 = alpha_new / (
-                    ((F * K) ** ((1 - self.beta) / 2)) * (
-                    1 + (((1 - self.beta) ** 2) / 24) * (np.log(F / K) ** 2) + (((1 - self.beta) ** 4) / 1920) * (
-                    np.log(F / K) ** 4)))
-            f2 = Z / self.x(Z)
-            f3 = tau * (1 + (((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
-                    self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (
-                                self.nu ** 2) * (
-                                2 - 3 * (self.rho ** 2)) / 24)
-            return f1 * f2 * f3
-        else:
-            return (alpha_new / (F ** (1 - self.beta))) * tau * (
-                        1 + (((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
-                        self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (
-                                self.nu ** 2) * (
-                                2 - 3 * (self.rho ** 2)) / 24)
+        Z = (self.nu / alpha_new) * ((F * K) ** ((1 - self.beta) / 2)) * np.log(F / K)
+        f1 = alpha_new / (
+                ((F * K) ** ((1 - self.beta) / 2)) * (
+                1 + (((1 - self.beta) ** 2) / 24) * (np.log(F / K) ** 2) + (((1 - self.beta) ** 4) / 1920) * (
+                np.log(F / K) ** 4)))
+        f2 = Z / self.x(Z)
+        f3 = tau * (1 + (((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
+                self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (
+                            self.nu ** 2) * (
+                            2 - 3 * (self.rho ** 2)) / 24)
+        if self.x(Z) == 0:
+            return (alpha_new / (F ** (1 - self.beta))) * f3
+        return f1 * f2 * f3
 
     def sigma_prime(self, F, K, tau, alpha_new, eps=1 / 10000):
         # numerical derivative of SABR sigma formula
