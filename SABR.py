@@ -109,16 +109,24 @@ class SABR_model:
 
     def sigma(self, F, K, tau, alpha_new):
         # SABR sigma formula
-        Z = (self.nu / alpha_new) * ((F * K) ** ((1 - self.beta) / 2)) * np.log(F / K)
-        f1 = alpha_new / (
-                ((F * K) ** ((1 - self.beta) / 2)) * (
-                1 + (((1 - self.beta) ** 2) / 24) * (np.log(F / K) ** 2) + (((1 - self.beta) ** 4) / 1920) * (
-                np.log(F / K) ** 4)))
-        f2 = Z / self.x(Z)
-        f3 = tau * (1 + (((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
-                self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (self.nu ** 2) * (
-                            2 - 3 * (self.rho ** 2)) / 24)
-        return f1 * f2 * f3
+        if F != K:
+            Z = (self.nu / alpha_new) * ((F * K) ** ((1 - self.beta) / 2)) * np.log(F / K)
+            f1 = alpha_new / (
+                    ((F * K) ** ((1 - self.beta) / 2)) * (
+                    1 + (((1 - self.beta) ** 2) / 24) * (np.log(F / K) ** 2) + (((1 - self.beta) ** 4) / 1920) * (
+                    np.log(F / K) ** 4)))
+            f2 = Z / self.x(Z)
+            f3 = tau * (1 + (((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
+                    self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (
+                                self.nu ** 2) * (
+                                2 - 3 * (self.rho ** 2)) / 24)
+            return f1 * f2 * f3
+        else:
+            return (alpha_new / (F ** (1 - self.beta))) * tau * (
+                        1 + (((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
+                        self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (
+                                self.nu ** 2) * (
+                                2 - 3 * (self.rho ** 2)) / 24)
 
     def sigma_prime(self, F, K, tau, alpha_new, eps=1 / 10000):
         # numerical derivative of SABR sigma formula
@@ -182,14 +190,13 @@ class SABR_model:
         sigma_pr = self.sigma_prime(F, K, tau, self.vol_paths[step, :])
         return BSd + BSv * sigma_pr
 
+# model = SABR_model(150, 0.4, 1, 0.5, 0.05, 0.04, 100, 10, seed=10538)
+# print(model.get_price(150, 50))  # here we use the SABR pricing formula
+# print(model.get_price(150, 50, sigma=True))  # "naive" BS price
 
-#model = SABR_model(150, 0.4, 1, 0.5, 0.05, 0.04, 100, 10, seed=10538)
-#print(model.get_price(150, 50))  # here we use the SABR pricing formula
-#print(model.get_price(150, 50, sigma=True))  # "naive" BS price
-
-#print(model.get_delta(150, 50))  # here we use the SABR delta formula
-#print(model.get_delta(150, 50, sigma=True))  # "naive" BS delta
-#model.plot_paths()
+# print(model.get_delta(150, 50))  # here we use the SABR delta formula
+# print(model.get_delta(150, 50, sigma=True))  # "naive" BS delta
+# model.plot_paths()
 
 # Note:
 # one can create a BS model by specifying nu=0 --> constant volatility
