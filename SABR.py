@@ -119,9 +119,11 @@ class SABR_model:
                 self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (
                             self.nu ** 2) * (
                             2 - 3 * (self.rho ** 2)) / 24)
-        if self.x(Z) == 0:
-            return (alpha_new / (F ** (1 - self.beta))) * f3
-        return f1 * f2 * f3
+        res = f1 * f2 * f3
+        if np.any(np.isnan(res)):
+            ind = np.isnan(f2)
+            res[ind] = (alpha_new / (F[ind] ** (1 - self.beta))) * f3[ind]
+        return res
 
     def sigma_prime(self, F, K, tau, alpha_new, eps=1 / 10000):
         # numerical derivative of SABR sigma formula
