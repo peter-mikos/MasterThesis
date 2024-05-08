@@ -121,7 +121,7 @@ class SABR_model:
                             2 - 3 * (self.rho ** 2)) / 24)
         res = f1 * f2 * f3
         if np.any(np.isnan(res)):
-            ind = np.isnan(f2)
+            ind = np.isnan(res)
             res[ind] = (alpha_new / (F[ind] ** (1 - self.beta))) * f3[ind]
         return res
 
