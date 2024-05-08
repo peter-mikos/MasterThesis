@@ -118,6 +118,10 @@ class Deep_Hedge:
         self.model_wealth.compile(optimizer=optimizer, loss=loss)
         self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs)
 
+    def save(self, path_wealth, path_hedge):
+        self.model_wealth.save(filepath=path_wealth)
+        self.model_hedge.save(filepath=path_hedge)
+
     def loss_test(self):
         pr = self.model_wealth.predict(x=self.xtest)
         self.test_loss = np.mean((self.ytest - pr) ** 2)
