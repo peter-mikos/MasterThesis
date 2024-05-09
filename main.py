@@ -27,4 +27,4 @@ SABR_EC_hedge = dh(train_pathes=SABR_train.futures_paths, ytrain=SABR_train.payo
 SABR_EC_hedge.train()
 SABR_EC_hedge.loss_test()
 
-SABR_EC_hedge.save("SABR_EC_hedge.keras")
+SABR_EC_hedge.save("EC_wealth.keras", "EC_hedge.keras")
