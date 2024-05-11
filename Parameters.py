@@ -37,12 +37,30 @@ eurusd.DateTime = eurusd.DateTime.apply(lambda x: dt.datetime.strptime(x, '%Y%m%
 eurusd = eurusd.set_index(eurusd.DateTime)
 
 # forward data
-eurusd = eurusd.loc[dt.datetime(2023, 1, 13, 0, 0):dt.datetime(2024, 1, 16, 0, 0), "DateTime":"Close"]
+eurusd = eurusd.loc[dt.datetime(2023, 1, 2, 0, 0):dt.datetime(2024, 1, 2, 23, 59), "DateTime":"Close"]
 eurusd["Date"] = eurusd.DateTime.apply(lambda x: x.date())
-eurusd["YF"] = eurusd.DateTime.apply(lambda x: year_frac(x, dt.datetime(2024, 1, 15, 0, 0)))  # year fraction
+eurusd["YF"] = eurusd.DateTime.apply(lambda x: year_frac(x, dt.datetime(2024, 1, 2, 23, 59)))  # year fraction
 eurusd["D_EUR"] = eurusd.YF.apply(lambda x: discount_factor(x, r_eur))
 eurusd["D_USD"] = eurusd.YF.apply(lambda x: discount_factor(x, r_usd))
 # EUR is the base currency and USD the target currency so the forward price is:
 # Forward = Spot * D_USD / D_EUR
 eurusd["Close_Forward"] = eurusd.Close * eurusd.D_USD / eurusd.D_EUR
 # 1440 = 24 * 60 minutes per day
+eurusd_daily = pd.concat(
+    [
+        eurusd.groupby(["Date"])["Close_Forward"].apply(lambda x: x[-1]),
+        eurusd.groupby(["Date"])["Close_Forward"].std(),
+        eurusd.groupby(["Date"])["YF"].apply(lambda x: 1 - x.max())
+    ],
+    axis=1
+)
+eurusd_daily.columns = ["F", "Sigma", "t"]
+
+F0 = eurusd_daily.F[0]  # initial futures value
+alpha = eurusd_daily.Sigma[0]  # initial volatility value
+beta = 0.5  # shape parameter
+rho = eurusd_daily[["F", "Sigma"]].corr().loc["F", "Sigma"]  # correlation between BMs
+nu = eurusd_daily.Sigma.std()  # volvol
+r = (eurusd.D_EUR[0] / eurusd.D_USD[0]) - 1  # interest rate
+steps = 365  # number of time steps
+T = 1  # time of maturity
