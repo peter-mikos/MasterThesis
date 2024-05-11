@@ -22,7 +22,7 @@ class Deep_Hedge:
     model_hedge = None  # hedge neural network
 
     def __init__(self, train_pathes, ytrain, test_pathes, ytest, initial_wealth, other_train=None, other_test=None,
-                 steps=100, m=1,
+                 steps=365, m=1,
                  d=2, n=200, actf="tanh", T=1):
         # Initializer
         self.steps = steps
