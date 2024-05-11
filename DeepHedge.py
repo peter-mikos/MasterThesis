@@ -56,7 +56,7 @@ class Deep_Hedge:
                 x[0][:, i, 0] = np.repeat(TimeConv(TimePoints[i]), K)
             for j in range(self.o):  # additional inputs
                 x[0][:, :, j + 1] = other[j].transpose()[:, 0:N]
-            x[0][:, :, self.o + 1] = pathes[:, 0:N]
+            x[0][:, :, -1] = pathes[:, 0:N]
             x[1][:, :, 0] = pathes[:, 1:(N + 1)] - pathes[:, 0:N]
             return x
 
