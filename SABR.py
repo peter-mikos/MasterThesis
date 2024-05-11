@@ -10,7 +10,8 @@ class SABR_model:
     beta = None  # shape parameter
     rho = None  # correlation between BMs
     nu = None  # volvol
-    r = None  # interest rate
+    r_tar = None  # interest rate of target currency
+    r_base = None  # interest rate of base currency
     steps = None  # number of time steps
     N = None  # number of simulated paths
     T = None  # time of maturity
@@ -18,14 +19,15 @@ class SABR_model:
     futures_paths = None  # N*steps array of futures paths
     time_points = None  # list of time points between 0 and T
 
-    def __init__(self, F0, alpha, beta, rho, nu, r, steps, N, T=1, seed=None):
+    def __init__(self, F0, alpha, beta, rho, nu, r_tar, r_base, steps, N, T=1, seed=None):
         # Initializer
         self.F0 = F0
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
         self.nu = nu
-        self.r = r
+        self.r_tar = r_tar
+        self.r_base = r_base
         self.steps = steps
         self.N = N
         self.T = T
@@ -41,13 +43,14 @@ class SABR_model:
             "rho": self.rho,
             "nu": self.nu,
             "f": self.F0,
-            "r": self.r,
+            "r_tar": self.r_tar,
+            "r_base": self.r_base,
             "steps": self.steps,
             "N": self.N,
             "T": self.T
         }
 
-    def set_parameters(self, F0, alpha, beta, rho, nu, r, steps, N, T=1, seed=None):
+    def set_parameters(self, F0, alpha, beta, rho, nu, r_tar, r_base, steps, N, T=1, seed=None):
         # alter parameters of object and create new paths
         self.seed = seed
         self.F0 = F0
@@ -55,7 +58,8 @@ class SABR_model:
         self.beta = beta
         self.rho = rho
         self.nu = nu
-        self.r = r
+        self.r_tar = r_tar
+        self.r_base = r_base
         self.steps = steps
         self.N = N
         self.T = T
@@ -143,7 +147,7 @@ class SABR_model:
             sigma = self.sigma(F, K, tau, alpha_new)
         d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
         d2 = d1 - sigma * np.sqrt(tau)
-        D = np.exp(-self.r * tau)  # TODO: discounting method might change
+        D = (((1 + self.r_base) ** tau) / ((1 + self.r_tar) ** tau))
         if call:
             return D * (sp.stats.norm.cdf(d1) * F - sp.stats.norm.cdf(d2) * K)
         elif not call:

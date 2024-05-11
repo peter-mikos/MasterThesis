@@ -61,7 +61,7 @@ def get_parameters():
     beta = 0.5  # shape parameter
     rho = eurusd_daily[["F", "Sigma"]].corr().loc["F", "Sigma"]  # correlation between BMs
     nu = eurusd_daily.Sigma.std()  # volvol
-    r = (eurusd.D_EUR[0] / eurusd.D_USD[0]) - 1  # interest rate
+    # r = (eurusd.D_EUR[0] / eurusd.D_USD[0]) - 1  # interest rate
     steps = 365  # number of time steps
     T = 1  # time of maturity
 
@@ -71,7 +71,8 @@ def get_parameters():
         "beta": beta,
         "rho": rho,
         "nu": nu,
-        "r": r,
+        "r_tar": r_usd,
+        "r_base": r_eur,
         "steps": steps,
         "T": T
     }
