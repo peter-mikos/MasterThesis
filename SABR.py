@@ -71,7 +71,7 @@ class SABR_model:
             np.random.seed(self.seed)
         futures = np.zeros((self.steps + 1, self.N))
         volas = np.zeros((self.steps + 1, self.N))
-        futures[0,] = self.F0;
+        futures[0,] = self.F0
         volas[0,] = self.alpha
         dt = self.T / self.steps
         for i in range(self.steps):
