@@ -15,7 +15,7 @@ def get_parameters():
     # Day Count Convention: ACT/ACT
     # 2023 had 365 days
     def year_frac(start, end, basis=365):
-        return (end - start).days / basis
+        return 1 - ((end - start).days / basis)
 
     def discount_factor(YF, r):
         return 1 / ((1 + r) ** YF)
@@ -50,7 +50,7 @@ def get_parameters():
         [
             eurusd.groupby(["Date"])["Close_Forward"].apply(lambda x: x[-1]),
             eurusd.groupby(["Date"])["Close_Forward"].std(),
-            eurusd.groupby(["Date"])["YF"].apply(lambda x: 1 - x.max())
+            eurusd.groupby(["Date"])["YF"].max()
         ],
         axis=1
     )
