@@ -1,3 +1,4 @@
+import numpy as np
 import zipfile
 import datetime as dt
 import pandas as pd
@@ -49,7 +50,7 @@ def get_parameters():
     eurusd_daily = pd.concat(
         [
             eurusd.groupby(["Date"])["Close_Forward"].apply(lambda x: x[-1]),
-            eurusd.groupby(["Date"])["Close_Forward"].std(),
+            eurusd.groupby(["Date"])["Close_Forward"].apply(lambda x: x.std() * np.sqrt(24 * 60 * 365)),
             eurusd.groupby(["Date"])["YF"].apply(lambda x: 1 - x.max())
         ],
         axis=1
