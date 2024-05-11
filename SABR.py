@@ -82,6 +82,7 @@ class SABR_model:
             )
             volas[i + 1] = volas[i, :] + self.nu * volas[i, :] * dW[:, 0]
             futures[i + 1] = futures[i, :] + volas[i] * (futures[i, :] ** self.beta) * dW[:, 1]
+            futures[i + 1] = np.abs(futures[i + 1])
         self.vol_paths = volas
         self.futures_paths = futures
 
