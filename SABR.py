@@ -112,6 +112,12 @@ class SABR_model:
 
         plt.show()
 
+    def plot_delta(self, step, K):
+        delta = self.get_delta(step=step, K=K)
+        price = self.futures_paths[step]
+        plt.scatter(price, delta)
+        plt.title(("Hedge Ratio at time t=" + str(self.time_points[step])))
+
     def x(self, z):
         # helper function for the SABR sigma formula
         return np.log((np.sqrt(1 - 2 * self.rho * z + (z ** 2)) + z - self.rho) / (1 - self.rho))
