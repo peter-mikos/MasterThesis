@@ -46,7 +46,6 @@ def get_parameters():
     # EUR is the base currency and USD the target currency so the forward price is:
     # Forward = Spot * D_USD / D_EUR
     eurusd["Close_Forward"] = eurusd.Close * eurusd.D_USD / eurusd.D_EUR
-    # 1440 = 24 * 60 minutes per day
     eurusd_daily = pd.concat(
         [
             eurusd.groupby(["Date"])["Close_Forward"].apply(lambda x: x[-1]),
@@ -59,7 +58,7 @@ def get_parameters():
 
     F0 = eurusd_daily.F[0]  # initial futures value
     alpha = eurusd_daily.Sigma[0]  # initial volatility value
-    beta = 0.5  # shape parameter
+    beta = 1  # shape parameter
     rho = eurusd_daily[["F", "Sigma"]].corr().loc["F", "Sigma"]  # correlation between BMs
     nu = eurusd_daily.Sigma.std()  # volvol
     # r = (eurusd.D_EUR[0] / eurusd.D_USD[0]) - 1  # interest rate
@@ -75,5 +74,6 @@ def get_parameters():
         "r_tar": r_usd,
         "r_base": r_eur,
         "steps": steps,
-        "T": T
+        "T": T,
+        "data": eurusd_daily
     }

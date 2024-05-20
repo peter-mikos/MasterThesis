@@ -19,8 +19,9 @@ class SABR_model:
     futures_paths = None  # N*steps array of futures paths
     time_points = None  # list of time points between 0 and T
 
-    def __init__(self, F0, alpha, beta, rho, nu, r_tar, r_base, steps, N, T=1, seed=None):
+    def __init__(self, F0, alpha, beta, rho, nu, r_tar, r_base, steps, N, T=1, seed=None, voltype="yearly"):
         # Initializer
+        self.voltype = voltype
         self.F0 = F0
         self.alpha = alpha
         self.beta = beta
@@ -74,6 +75,8 @@ class SABR_model:
         futures[0,] = self.F0
         volas[0,] = self.alpha
         dt = self.T / self.steps
+        if self.voltype == "daily":
+            dt = 1
         for i in range(self.steps):
             dW = np.random.multivariate_normal(
                 mean=np.array([0, 0]),
@@ -81,6 +84,7 @@ class SABR_model:
                 size=self.N
             )
             volas[i + 1] = volas[i, :] + self.nu * volas[i, :] * dW[:, 0]
+            np.abs(volas[i + 1])
             futures[i + 1] = futures[i, :] + volas[i] * (futures[i, :] ** self.beta) * dW[:, 1]
             futures[i + 1] = np.abs(futures[i + 1])
         self.vol_paths = volas
