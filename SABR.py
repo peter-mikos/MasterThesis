@@ -183,7 +183,7 @@ class SABR_model:
 
     def BS_vega(self, F, d1, tau):
         # BS vega for European call or put options
-        return F * np.exp(-self.r * tau) * sp.stats.norm.pdf(d1) * np.sqrt(tau)
+        return F * self.discount_factor(tau, True) * sp.stats.norm.pdf(d1) * np.sqrt(tau)
 
     def get_delta(self, K, step, call=True, sigma=False):
         # gets delta hedging ratio according to "true" volatility or SABR-model
