@@ -123,6 +123,10 @@ class Deep_Hedge:
     def load_weights(self, cp_path="cp.weights.h5"):
         self.model_wealth.load_weights(cp_path)
 
+    def plot_hedge_ratio(self, step):
+        self.model_hedge.predict(x=self.xtest)
+        pass # TODO
+
     def loss_test(self):
         pr = self.model_wealth.predict(x=self.xtest)
         self.test_loss = np.mean((self.ytest - pr) ** 2)

@@ -9,12 +9,12 @@ seed_test = 711  # seed for testing
 params = get_parameters()
 
 # plot showing the futures path
-plt.plot(params["data"].t, params["data"].F)
-plt.show()
+#plt.plot(params["data"].t, params["data"].F)
+#plt.show()
 
 # plot shwowing the volatility path
-plt.plot(params["data"].t, params["data"].Sigma)
-plt.show()
+#plt.plot(params["data"].t, params["data"].Sigma)
+#plt.show()
 
 SABR_train = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
                   params["r_base"], params["steps"], 10000, params["T"], seed_train, voltype="daily")
@@ -24,12 +24,10 @@ SABR_test = path(params["F0"], params["alpha"], params["beta"], params["rho"], p
 SABR_EC_hedge = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_train.vol_paths], ytrain=SABR_train.payoff(K=params["F0"]),
                    test_pathes=SABR_test.futures_paths, other_test=[SABR_test.vol_paths], ytest=SABR_test.payoff(K=params["F0"]),
                    initial_wealth=np.mean(SABR_train.get_price(K=params["F0"], step=0)))
-SABR_EC_hedge.train()
 
-hedge2 = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_train.vol_paths], ytrain=SABR_train.payoff(K=params["F0"]),
-                   test_pathes=SABR_test.futures_paths, other_test=[SABR_test.vol_paths], ytest=SABR_test.payoff(K=params["F0"]),
-                   initial_wealth=np.mean(SABR_train.get_price(K=params["F0"], step=0)))
-hedge2.load_weights()
+# uncomment if you want to retrain the model
+#SABR_EC_hedge.train()
 
+SABR_EC_hedge.load_weights()
 SABR_EC_hedge.loss_test()
-hedge2.loss_test()
+
