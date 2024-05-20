@@ -137,7 +137,7 @@ class SABR_model:
         res = f1 * f2 * f3
         if np.any(np.isnan(res)):
             ind = np.isnan(res)
-            res[ind] = (alpha_new / (F[ind] ** (1 - self.beta))) * f3[ind]
+            res[ind] = (alpha_new[ind] / (F[ind] ** (1 - self.beta))) * f3[ind]
         return res
 
     def sigma_prime(self, F, K, tau, alpha_new, eps=1 / 10000):
@@ -154,7 +154,7 @@ class SABR_model:
     def discount_factor(self, t, tau=False):
         if not tau:
             tau = self.T - t
-        return (((1 + self.r_base) ** tau) / ((1 + self.r_tar) ** tau))
+        return ((1 + self.r_base) ** tau) / ((1 + self.r_tar) ** tau)
 
     def BS_pricer(self, F, K, t, alpha_new, call=True, sigma=None):
         # BS pricer for European call or put options
