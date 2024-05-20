@@ -6,7 +6,7 @@ from keras.models import Sequential, Model
 
 
 class Deep_Hedge:
-    steps = 100  # time discretization
+    steps = None  # time discretization
     o = 0  # dimension of observations - 1 for the time dimension
     m = 1  # dimension of price
     d = 2  # number of layers
