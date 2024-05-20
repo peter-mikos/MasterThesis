@@ -145,6 +145,11 @@ class SABR_model:
             else:
                 return np.maximum(K - self.futures_paths[-1, :], 0)
 
+    def discount_factor(self, t, tau=False):
+        if not tau:
+            tau = self.T - t
+        return (((1 + self.r_base) ** tau) / ((1 + self.r_tar) ** tau))
+
     def BS_pricer(self, F, K, t, alpha_new, call=True, sigma=None):
         # BS pricer for European call or put options
         tau = self.T - t
@@ -152,7 +157,7 @@ class SABR_model:
             sigma = self.sigma(F, K, tau, alpha_new)
         d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
         d2 = d1 - sigma * np.sqrt(tau)
-        D = (((1 + self.r_base) ** tau) / ((1 + self.r_tar) ** tau))
+        D = self.discount_factor(t)
         if call:
             return D * (sp.stats.norm.cdf(d1) * F - sp.stats.norm.cdf(d2) * K)
         elif not call:
@@ -172,9 +177,9 @@ class SABR_model:
     def BS_delta(self, d1, tau, call):
         # BS delta for European call or put options
         if call:
-            return np.exp(-self.r * tau) * sp.stats.norm.cdf(d1)
+            return self.discount_factor(tau, True) * sp.stats.norm.cdf(d1)
         elif not call:
-            return np.exp(-self.r * tau) * (-sp.stats.norm.cdf(-d1))
+            return self.discount_factor(tau, True) * (-sp.stats.norm.cdf(-d1))
 
     def BS_vega(self, F, d1, tau):
         # BS vega for European call or put options
