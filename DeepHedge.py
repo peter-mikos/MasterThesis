@@ -114,13 +114,14 @@ class Deep_Hedge:
         elif tp == "h":
             self.model_hedge.summary()
 
-    def train(self, batch_size=200, epochs=20, optimizer="adam", loss='mean_squared_error'):
+    def train(self, batch_size=200, epochs=20, optimizer="adam", loss='mean_squared_error', cp_path="cp.ckpt"):
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(cp_path, save_weights_only=True, verbose=1)
+
         self.model_wealth.compile(optimizer=optimizer, loss=loss)
         self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs)
 
-    def save(self, path_wealth, path_hedge):
-        self.model_wealth.save(filepath=path_wealth)
-        self.model_hedge.save(filepath=path_hedge)
+    def load_weights(self, cp_path="cp.ckpt"):
+        self.model_wealth.load_weights(cp_path)
 
     def loss_test(self):
         pr = self.model_wealth.predict(x=self.xtest)
