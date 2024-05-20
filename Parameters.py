@@ -50,7 +50,7 @@ def get_parameters():
     eurusd_daily = pd.concat(
         [
             eurusd.groupby(["Date"])["Close_Forward"].apply(lambda x: x[-1]),
-            eurusd.groupby(["Date"])["Close_Forward"].apply(lambda x: x.std() * np.sqrt(24 * 60 * 365)),
+            eurusd.groupby(["Date"])["Close_Forward"].apply(lambda x: x.std() * np.sqrt(24 * 60)),
             eurusd.groupby(["Date"])["YF"].apply(lambda x: 1 - x.max())
         ],
         axis=1
@@ -61,7 +61,7 @@ def get_parameters():
     alpha = eurusd_daily.Sigma[0]  # initial volatility value
     beta = 0.5  # shape parameter
     rho = eurusd_daily[["F", "Sigma"]].corr().loc["F", "Sigma"]  # correlation between BMs
-    nu = eurusd_daily.Sigma.std() * np.sqrt(365)  # volvol
+    nu = eurusd_daily.Sigma.std()  # volvol
     # r = (eurusd.D_EUR[0] / eurusd.D_USD[0]) - 1  # interest rate
     steps = 365  # number of time steps
     T = 1  # time of maturity
