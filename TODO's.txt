@@ -1,6 +1,7 @@
 Priority:
 - Delta SABR vs. Hedge Ratio DeepHedge --> wealth
 - Ability to save and load model
+- Proper Statistics for NN Performance
 
 
 Second Order:

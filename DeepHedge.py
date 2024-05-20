@@ -118,7 +118,7 @@ class Deep_Hedge:
         cp_callback = tf.keras.callbacks.ModelCheckpoint(cp_path, save_weights_only=True, verbose=1)
 
         self.model_wealth.compile(optimizer=optimizer, loss=loss)
-        self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs)
+        self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs, callbacks=[cp_callback])
 
     def load_weights(self, cp_path="cp.ckpt"):
         self.model_wealth.load_weights(cp_path)
