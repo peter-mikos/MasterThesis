@@ -17,9 +17,9 @@ plt.plot(params["data"].t, params["data"].Sigma)
 plt.show()
 
 SABR_train = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
-                  params["r_base"], params["steps"], 10000, params["T"], seed_train)
+                  params["r_base"], params["steps"], 10000, params["T"], seed_train, voltype="daily")
 SABR_test = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
-                 params["r_base"], params["steps"], 1000, params["T"], seed_test)
+                 params["r_base"], params["steps"], 1000, params["T"], seed_test, voltype="daily")
 
 SABR_EC_hedge = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_train.vol_paths], ytrain=SABR_train.payoff(K=params["F0"]),
                    test_pathes=SABR_test.futures_paths, other_test=[SABR_test.vol_paths], ytest=SABR_test.payoff(K=params["F0"]),
