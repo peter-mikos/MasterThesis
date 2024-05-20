@@ -117,6 +117,14 @@ class SABR_model:
         price = self.futures_paths[step]
         plt.scatter(price, delta)
         plt.title(("Hedge Ratio at time t=" + str(self.time_points[step])))
+        plt.show()
+
+    def plot_wealth(self, step, K):
+        delta = self.get_delta(step=step, K=K)
+        price = self.futures_paths[step]
+        plt.scatter(price*delta, delta)
+        plt.title(("Wealth at time t=" + str(self.time_points[step])))
+        plt.show()
 
     def x(self, z):
         # helper function for the SABR sigma formula
