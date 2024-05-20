@@ -26,5 +26,3 @@ SABR_EC_hedge = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_trai
                    initial_wealth=np.mean(SABR_train.get_price(K=params["F0"], step=0)))
 SABR_EC_hedge.train()
 SABR_EC_hedge.loss_test()
-
-SABR_EC_hedge.save("EC_wealth.keras", "EC_hedge.keras")
