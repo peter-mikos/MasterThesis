@@ -32,3 +32,4 @@ hedge2 = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_train.vol_p
 hedge2.load_weights()
 
 SABR_EC_hedge.loss_test()
+hedge2.loss_test()
