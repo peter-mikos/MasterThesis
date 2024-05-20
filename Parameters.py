@@ -61,7 +61,7 @@ def get_parameters():
     alpha = eurusd_daily.Sigma[0]  # initial volatility value
     beta = 0.5  # shape parameter
     rho = eurusd_daily[["F", "Sigma"]].corr().loc["F", "Sigma"]  # correlation between BMs
-    nu = eurusd_daily.Sigma.std()  # volvol
+    nu = eurusd_daily.Sigma.std() * np.sqrt(365)  # volvol
     # r = (eurusd.D_EUR[0] / eurusd.D_USD[0]) - 1  # interest rate
     steps = 365  # number of time steps
     T = 1  # time of maturity
