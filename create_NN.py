@@ -25,6 +25,10 @@ SABR_EC_hedge = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_trai
                    test_pathes=SABR_test.futures_paths, other_test=[SABR_test.vol_paths], ytest=SABR_test.payoff(K=params["F0"]),
                    initial_wealth=np.mean(SABR_train.get_price(K=params["F0"], step=0)))
 SABR_EC_hedge.train()
+
+hedge2 = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_train.vol_paths], ytrain=SABR_train.payoff(K=params["F0"]),
+                   test_pathes=SABR_test.futures_paths, other_test=[SABR_test.vol_paths], ytest=SABR_test.payoff(K=params["F0"]),
+                   initial_wealth=np.mean(SABR_train.get_price(K=params["F0"], step=0)))
+hedge2.load_weights()
+
 SABR_EC_hedge.loss_test()
-
-
