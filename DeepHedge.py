@@ -118,14 +118,22 @@ class Deep_Hedge:
         cp_callback = tf.keras.callbacks.ModelCheckpoint(cp_path, save_weights_only=True, verbose=1)
 
         self.model_wealth.compile(optimizer=optimizer, loss=loss)
-        self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs, callbacks=[cp_callback])
+        self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs,
+                              callbacks=[cp_callback])
 
     def load_weights(self, cp_path="cp.weights.h5"):
         self.model_wealth.load_weights(cp_path)
 
-    def plot_hedge_ratio(self, step):
-        self.model_hedge.predict(x=self.xtest)
-        pass # TODO
+    def plot_hedge_ratio(self, step, wealth=False):
+        ratio = self.model_hedge.predict(x=self.xtest[0][:, step, :])
+        price = self.xtest[0][:, step, -1]
+        if wealth:
+            plt.title(("Wealth at time t=" + str(self.xtest[0][0, step, 0])))
+            ratio = ratio * price
+        else:
+            plt.title(("Hedge Ratio at time t=" + str(self.xtest[0][0, step, 0])))
+        plt.scatter(price, ratio)
+        plt.show()
 
     def loss_test(self):
         pr = self.model_wealth.predict(x=self.xtest)
