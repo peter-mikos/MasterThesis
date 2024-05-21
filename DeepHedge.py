@@ -23,7 +23,7 @@ class Deep_Hedge:
 
     def __init__(self, train_pathes, ytrain, test_pathes, ytest, initial_wealth, other_train=None, other_test=None,
                  steps=365, m=1,
-                 d=2, n=200, actf="tanh", T=1):
+                 d=4, n=400, actf="sigmoid", T=1):
         # Initializer
         self.steps = steps
         self.m = m
@@ -114,11 +114,11 @@ class Deep_Hedge:
         elif tp == "h":
             self.model_hedge.summary()
 
-    def train(self, batch_size=200, epochs=20, learning_rate=0.001, optimizer="adam", loss='mean_squared_error',
+    def train(self, batch_size=500, epochs=20, learning_rate=0.0001, optimizer="adam", loss='mean_squared_error',
               cp_path="cp.weights.h5"):
         cp_callback = tf.keras.callbacks.ModelCheckpoint(cp_path, save_weights_only=True, verbose=1)
 
-        self.model_wealth.compile(optimizer=optimizer, loss=loss)
+        self.model_wealth.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss=loss)
         self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs,
                               callbacks=[cp_callback])
 
