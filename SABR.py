@@ -122,7 +122,7 @@ class SABR_model:
     def plot_wealth(self, step, K):
         delta = self.get_delta(step=step, K=K)
         price = self.futures_paths[step]
-        plt.scatter(price*delta, delta)
+        plt.scatter(price * delta, delta)
         plt.title(("Wealth at time t=" + str(self.time_points[step])))
         plt.show()
 
@@ -219,11 +219,14 @@ class SABR_model:
         payoffs = self.payoff(K=K)
         wealth = self.get_price(step=0, K=K)
         for i in range(self.steps):
-            wealth = wealth + self.get_delta(step=i, K=K) * (self.futures_paths[i+1, :] - self.futures_paths[i, :])
-        loss = np.mean((wealth - payoffs)**2)
+            wealth = wealth + self.get_delta(step=i, K=K) * (self.futures_paths[i + 1, :] - self.futures_paths[i, :])
+        loss = np.mean((wealth - payoffs) ** 2)
         std_err = np.std(wealth - payoffs)
         print("Model:\n" + "Loss (MSE): " + str(loss) + "\n" +
               "Standard Error: " + str(std_err))
+        print("This happens if we do nothing:\n" +
+              "Loss (MSE): " + str(np.mean((self.get_price(step=0, K=K)/self.discount_factor(t=0) - payoffs) ** 2)) + "\n" +
+              "Standard Error: " + str(np.std(self.get_price(step=0, K=K) - payoffs)))
 
 # Note:
 # one can create a BS model by specifying nu=0 --> constant volatility
