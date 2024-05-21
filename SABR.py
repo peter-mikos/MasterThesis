@@ -215,6 +215,15 @@ class SABR_model:
         sigma_pr = self.sigma_prime(F, K, tau, self.vol_paths[step, :])
         return BSd + BSv * sigma_pr
 
+    def performance(self, K):
+        delta = self.get_delta(step=-1, K=K)
+        price = self.futures_paths[-1, :]
+        payoff = self.payoff(K=K)
+        loss = np.mean(((delta*price) - payoff)**2)
+        std_err = np.std((delta*price) - payoff)
+        print("Model:\n" + "Loss (MSE): " + str(loss) + "\n" +
+              "Standard Error: " + str(std_err))
+
 # Note:
 # one can create a BS model by specifying nu=0 --> constant volatility
 # and using sigma=True for pricing and delta
