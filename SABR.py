@@ -216,11 +216,12 @@ class SABR_model:
         return BSd + BSv * sigma_pr
 
     def performance(self, K):
-        delta = self.get_delta(step=-1, K=K)
-        price = self.futures_paths[-1, :]
-        payoff = self.payoff(K=K)
-        loss = np.mean(((delta*price) - payoff)**2)
-        std_err = np.std((delta*price) - payoff)
+        payoffs = self.payoff(K=K)
+        wealth = self.get_price(step=0, K=K)
+        for i in range(self.steps):
+            wealth = wealth + self.get_delta(step=i, K=K) * (self.futures_paths[i+1, :] - self.futures_paths[i, :])
+        loss = np.mean((wealth - payoffs)**2)
+        std_err = np.std(wealth - payoffs)
         print("Model:\n" + "Loss (MSE): " + str(loss) + "\n" +
               "Standard Error: " + str(std_err))
 
