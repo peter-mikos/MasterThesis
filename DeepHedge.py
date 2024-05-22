@@ -32,8 +32,7 @@ class Deep_Hedge:
             self.o = len(other_train)
         self.d = d
         self.n = n
-        if type(drop_out) != type(None):
-            self.drop_out = drop_out
+        self.drop_out = drop_out
         self.other_train = other_train
         self.other_test = other_test
         self.activation = actf
@@ -140,5 +139,6 @@ class Deep_Hedge:
         pr = self.model_wealth.predict(x=self.xtest)
         self.test_loss = np.mean((self.ytest - pr) ** 2)
         self.std_err = np.std(self.ytest - pr)
-        print("Neural Network:\n" + "Loss (MSE): " + str(self.test_loss) + "\n" +
+        loss = self.model_wealth.evaluate(x=self.xtest, y=self.ytest)
+        print("Neural Network:\n" + "Loss (MSE): " + str(loss) + "\n" +
               "Standard Error: " + str(self.std_err))
