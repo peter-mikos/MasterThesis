@@ -126,8 +126,8 @@ class Deep_Hedge:
                               callbacks=[cp_callback])
 
     def load_weights(self, cp_path="cp.weights.h5", learning_rate=0.0001):
+        self.model_wealth.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss="mean_squared_error")
         self.model_wealth.load_weights(cp_path)
-        self.model_wealth.self.model_wealth.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss="mean_squared_error")
 
     def plot_hedge_ratio(self, step):
         ratio = self.model_hedge.predict(x=self.xtest[0][:, step, :])
