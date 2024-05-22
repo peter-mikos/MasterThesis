@@ -138,8 +138,7 @@ class Deep_Hedge:
 
     def loss_test(self):
         pr = self.model_wealth.predict(x=self.xtest)
-        self.test_loss = np.mean((self.ytest - pr) ** 2)
-        self.std_err = np.std(self.ytest - pr)
-        loss = self.model_wealth.evaluate(x=self.xtest, y=self.ytest)
-        print("Neural Network:\n" + "Loss (MSE): " + str(loss) + "\n" +
+        self.test_loss = np.mean((self.ytest - pr[:, 0]) ** 2)
+        self.std_err = np.std(self.ytest - pr[:, 0])
+        print("Neural Network:\n" + "Loss (MSE): " + str(self.test_loss) + "\n" +
               "Standard Error: " + str(self.std_err))
