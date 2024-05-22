@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from keras.layers import Input, Dense, Flatten, Subtract, Multiply, Add, Dot, Concatenate, TimeDistributed, Lambda
+from keras.layers import Input, Dense, Flatten, Subtract, Multiply, Add, Dot, Concatenate, TimeDistributed, Dropout, Lambda
 from keras.models import Sequential, Model
 
 
@@ -23,7 +23,7 @@ class Deep_Hedge:
 
     def __init__(self, train_pathes, ytrain, test_pathes, ytest, initial_wealth, other_train=None, other_test=None,
                  steps=365, m=1,
-                 d=4, n=400, actf="sigmoid", T=1):
+                 d=4, n=400, actf="sigmoid", T=1, drop_out=None):
         # Initializer
         self.steps = steps
         self.m = m
@@ -32,6 +32,8 @@ class Deep_Hedge:
             self.o = len(other_train)
         self.d = d
         self.n = n
+        if type(drop_out) != type(None):
+            self.drop_out = drop_out
         self.other_train = other_train
         self.other_test = other_test
         self.activation = actf
@@ -84,6 +86,8 @@ class Deep_Hedge:
         output = time_price
         for i in range(self.d):
             output = Dense(self.n, activation=self.activation)(output)
+            if i != self.d-1 and type(self.drop_out) != type(None):
+                output = Dropout(rate=self.drop_out)(output)
         output = Dense(self.m, activation='linear')(output)
         hedge = Model(inputs=time_price, outputs=output)
         self.model_hedge = hedge
@@ -92,7 +96,7 @@ class Deep_Hedge:
         Obs = Input(shape=(self.steps, self.o + 1 + self.m))
         Incr = Input(shape=(self.steps, self.m))
         inputs = [Obs, Incr]
-        V0 = pi(Obs[:, 0, 1])
+        V0 = pi(Obs[:, 0, -1])
         H = TimeDistributed(Lambda(self.model_hedge))(Obs)
         H = Flatten()(H)
         Incr = Flatten()(Incr)
