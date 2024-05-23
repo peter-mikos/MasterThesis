@@ -6,3 +6,10 @@ Priority:
 
 Second Order:
 - other payoff functions
+
+
+TODO:
+- volvol richtig berechnen --> time lags beachten
+- Black Scholes Hedge as second Benchmark
+- Darstellung: distribution of terminal wealth - payoff
+- Hedge Ratio's
