@@ -5,7 +5,7 @@ from Parameters import get_parameters
 import matplotlib.pyplot as plt
 
 seed_train = 10538  # seed for training
-seed_test = 711  # seed for testing
+seed_test = 420  # seed for testing
 params = get_parameters()
 
 # plot showing the futures path

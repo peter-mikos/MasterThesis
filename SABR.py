@@ -181,13 +181,13 @@ class SABR_model:
         else:
             raise ValueError("You must specify 'call' correctly! True or False")
 
-    def get_price(self, K, step, call=True, sigma=False):
-        # gets European call/put price given "true" volatility or SABR_model volatility
+    def get_price(self, K, step, call=True, BS=False):
+        # gets European call/put price given initial volatility or SABR_model volatility
         if (step > self.steps or step < 0) or type(step) != type(1):
             raise ValueError("You must specify 'step' correctly! Integer between 0 and " + str(self.steps))
-        if sigma:
-            return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], self.vol_paths[step, :], call,
-                                  sigma=self.vol_paths[step, :])
+        if BS:
+            return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], self.vol_paths[0, :], call,
+                                  sigma=self.vol_paths[0, :])
         return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], self.vol_paths[step, :], call)
 
     def BS_delta(self, d1, tau, call):
@@ -201,12 +201,12 @@ class SABR_model:
         # BS vega for European call or put options
         return F * self.discount_factor(tau, True) * sp.stats.norm.pdf(d1) * np.sqrt(tau)
 
-    def get_delta(self, K, step, call=True, sigma=False):
-        # gets delta hedging ratio according to "true" volatility or SABR-model
+    def get_delta(self, K, step, call=True, BS=False):
+        # gets delta hedging ratio according to initial volatility or SABR-model
         F = self.futures_paths[step, :]
         tau = self.T - self.time_points[step]
-        if sigma:
-            sigma = self.vol_paths[step, :]
+        if BS:
+            sigma = self.vol_paths[0, :]  # just taking initial volatility
             d1 = (np.log(F / K) + 0.5 * (sigma ** 2) * tau) / (sigma * np.sqrt(tau))
             return self.BS_delta(d1, tau, call)
         else:
@@ -219,12 +219,18 @@ class SABR_model:
 
     def performance(self, K):
         payoffs = self.payoff(K=K)
-        wealth = self.get_price(step=0, K=K)
+        wealth_SABR = self.get_price(step=0, K=K)
+        wealth_BS = self.get_price(step=0, K=K, BS=True)
         for i in range(self.steps):
-            wealth = wealth + self.get_delta(step=i, K=K) * (self.futures_paths[i + 1, :] - self.futures_paths[i, :])
-        loss = np.mean((wealth - payoffs) ** 2)
-        std_err = np.std(wealth - payoffs)
-        print("Model:\n" + "Loss (MSE): " + str(loss) + "\n" +
+            wealth_SABR = wealth_SABR + self.get_delta(step=i, K=K) * (self.futures_paths[i + 1, :] - self.futures_paths[i, :])
+            wealth_BS = wealth_BS + self.get_delta(step=i, K=K, BS=True) * (self.futures_paths[i + 1, :] - self.futures_paths[i, :])
+        loss = np.mean((wealth_SABR - payoffs) ** 2)
+        std_err = np.std(wealth_SABR - payoffs)
+        loss_BS = np.mean((wealth_BS - payoffs) ** 2)
+        std_err_BS = np.std(wealth_BS - payoffs)
+        print("BS-Model-Hedge:\n" + "Loss (MSE): " + str(loss_BS) + "\n" +
+              "Standard Error: " + str(std_err_BS))
+        print("SABR-Model-Hedge:\n" + "Loss (MSE): " + str(loss) + "\n" +
               "Standard Error: " + str(std_err))
         print("This happens if we do nothing:\n" +
               "Loss (MSE): " + str(
