@@ -52,3 +52,5 @@ axs[1, 1].set_title("SABR")
 
 for ax in axs.flat:
     ax.set(xlabel="terminal wealth - payoffs")
+
+plt.show()
