@@ -162,7 +162,9 @@ class SABR_model:
     def discount_factor(self, t, tau=False):
         if not tau:
             tau = self.T - t
-        return ((1 + self.r_base) ** tau) / ((1 + self.r_tar) ** tau)
+        D_tar = 1 / ((1 + self.r_tar) ** tau)
+        D_base = 1 / ((1 + self.r_base) ** tau)
+        return D_base / D_tar
 
     def BS_pricer(self, F, K, t, alpha_new, call=True, sigma=None):
         # BS pricer for European call or put options
@@ -225,7 +227,8 @@ class SABR_model:
         print("Model:\n" + "Loss (MSE): " + str(loss) + "\n" +
               "Standard Error: " + str(std_err))
         print("This happens if we do nothing:\n" +
-              "Loss (MSE): " + str(np.mean((self.get_price(step=0, K=K)/self.discount_factor(t=0) - payoffs) ** 2)) + "\n" +
+              "Loss (MSE): " + str(
+            np.mean((self.get_price(step=0, K=K) / self.discount_factor(t=0) - payoffs) ** 2)) + "\n" +
               "Standard Error: " + str(np.std(self.get_price(step=0, K=K) - payoffs)))
 
 # Note:
