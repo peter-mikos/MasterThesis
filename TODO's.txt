@@ -10,6 +10,5 @@ Second Order:
 
 TODO:
 - volvol richtig berechnen --> time lags beachten
-- Black Scholes Hedge as second Benchmark
-- Darstellung: distribution of terminal wealth - payoff
+- Darstellung: distribution of terminal wealth - payoff --> Expected Shortfall and Value at Risk!!!
 - Hedge Ratio's
