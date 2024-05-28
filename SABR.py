@@ -4,21 +4,6 @@ import matplotlib.pyplot as plt
 
 
 class SABR_model:
-    seed = None  # seed for replicability
-    F0 = None  # initial futures value
-    alpha = None  # initial volatility value
-    beta = None  # shape parameter
-    rho = None  # correlation between BMs
-    nu = None  # volvol
-    r_tar = None  # interest rate of target currency
-    r_base = None  # interest rate of base currency
-    steps = None  # number of time steps
-    N = None  # number of simulated paths
-    T = None  # time of maturity
-    vol_paths = None  # N*steps array of volatility paths
-    futures_paths = None  # N*steps array of futures paths
-    time_points = None  # list of time points between 0 and T
-
     def __init__(self, F0, alpha, beta, rho, nu, r_tar, r_base, steps, N, T=1, seed=None, voltype="yearly"):
         # Initializer
         self.voltype = voltype
@@ -224,6 +209,9 @@ class SABR_model:
         for i in range(self.steps):
             wealth_SABR = wealth_SABR + self.get_delta(step=i, K=K) * (self.futures_paths[i + 1, :] - self.futures_paths[i, :])
             wealth_BS = wealth_BS + self.get_delta(step=i, K=K, BS=True) * (self.futures_paths[i + 1, :] - self.futures_paths[i, :])
+        self.wealth_SABR = wealth_SABR
+        self.wealth_BS = wealth_BS
+        self.wealth_nothing = self.get_price(step=0, K=K) / self.discount_factor(t=0)
         loss = np.mean((wealth_SABR - payoffs) ** 2)
         std_err = np.std(wealth_SABR - payoffs)
         loss_BS = np.mean((wealth_BS - payoffs) ** 2)
@@ -234,7 +222,7 @@ class SABR_model:
               "Standard Error: " + str(std_err))
         print("This happens if we do nothing:\n" +
               "Loss (MSE): " + str(
-            np.mean((self.get_price(step=0, K=K) / self.discount_factor(t=0) - payoffs) ** 2)) + "\n" +
+            np.mean((self.wealth_nothing - payoffs) ** 2)) + "\n" +
               "Standard Error: " + str(np.std(self.get_price(step=0, K=K) - payoffs)))
 
 # Note:

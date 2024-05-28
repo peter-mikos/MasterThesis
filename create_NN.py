@@ -33,3 +33,22 @@ SABR_EC_hedge.summary("h")
 SABR_EC_hedge.load_weights()
 SABR_EC_hedge.loss_test()
 SABR_test.performance(K=params["F0"])
+
+payoffs = SABR_test.payoff(K=params["F0"])
+wealth_NN = SABR_EC_hedge.model_wealth.predict(x=SABR_EC_hedge.xtest)[:, 0]
+wealth_BS = SABR_test.wealth_BS
+wealth_SABR = SABR_test.wealth_SABR
+wealth_nothing = SABR_test.wealth_nothing
+
+fig, axs = plt.subplots(2, 2)
+axs[0, 0].hist(wealth_nothing - payoffs)
+axs[0, 0].set_title("Nothing")
+axs[0, 1].hist(wealth_NN - payoffs)
+axs[0, 1].set_title("NN")
+axs[1, 0].hist(wealth_BS - payoffs)
+axs[1, 0].set_title("BS")
+axs[1, 1].hist(wealth_SABR - payoffs)
+axs[1, 1].set_title("SABR")
+
+for ax in axs.flat:
+    ax.set(xlabel="terminal wealth - payoffs")
