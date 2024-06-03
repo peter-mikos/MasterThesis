@@ -1,13 +1,3 @@
-Priority:
-- Delta SABR vs. Hedge Ratio DeepHedge --> wealth
-- Ability to save and load model
-- Proper Statistics for NN Performance
-
-
-Second Order:
-- other payoff functions
-
-
 TODO:
 - volvol richtig berechnen --> time lags beachten
 - Darstellung: distribution of terminal wealth - payoff --> Expected Shortfall and Value at Risk!!!

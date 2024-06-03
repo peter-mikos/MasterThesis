@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from SABR import SABR_model as path
 from DeepHedge import Deep_Hedge as dh
 from Parameters import get_parameters
@@ -9,26 +10,29 @@ seed_test = 420  # seed for testing
 params = get_parameters()
 
 # plot showing the futures path
-#plt.plot(params["data"].t, params["data"].F)
-#plt.show()
+plt.plot(params["data"].t, params["data"].F)
+plt.show()
 
 # plot shwowing the volatility path
-#plt.plot(params["data"].t, params["data"].Sigma)
-#plt.show()
+plt.plot(params["data"].t, params["data"].Sigma)
+plt.show()
 
 SABR_train = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
                   params["r_base"], params["steps"], 30000, params["T"], seed_train, voltype="daily")
 SABR_test = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
                  params["r_base"], params["steps"], 1000, params["T"], seed_test, voltype="daily")
 
-SABR_EC_hedge = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_train.vol_paths], ytrain=SABR_train.payoff(K=params["F0"]),
-                   test_pathes=SABR_test.futures_paths, other_test=[SABR_test.vol_paths], ytest=SABR_test.payoff(K=params["F0"]),
-                   initial_wealth=np.mean(SABR_train.get_price(K=params["F0"], step=0)), actf="tanh", drop_out=None, n=300, d=3)
+SABR_EC_hedge = dh(train_pathes=SABR_train.futures_paths, other_train=[SABR_train.vol_paths],
+                   ytrain=SABR_train.payoff(K=params["F0"]),
+                   test_pathes=SABR_test.futures_paths, other_test=[SABR_test.vol_paths],
+                   ytest=SABR_test.payoff(K=params["F0"]),
+                   initial_wealth=np.mean(SABR_train.get_price(K=params["F0"], step=0)), actf="tanh", drop_out=None,
+                   n=300, d=3)
 
-# uncomment if you want to retrain the model
 SABR_EC_hedge.summary("h")
 
-#SABR_EC_hedge.train(batch_size=500, epochs=20, learning_rate=0.0001)
+# uncomment if you want to retrain the model
+# SABR_EC_hedge.train(batch_size=500, epochs=20, learning_rate=0.0001)
 
 SABR_EC_hedge.load_weights()
 SABR_EC_hedge.loss_test()
@@ -54,3 +58,33 @@ for ax in axs.flat:
     ax.set(xlabel="terminal wealth - payoffs")
 
 plt.show()
+
+quantiles = np.array([0.001, 0.01, 0.025, 0.05])
+VaRs = {
+    "Nothing": np.quantile(wealth_nothing - payoffs, quantiles),
+    "NN": np.quantile(wealth_NN - payoffs, quantiles),
+    "BS": np.quantile(wealth_BS - payoffs, quantiles),
+    "SABR": np.quantile(wealth_SABR - payoffs, quantiles)
+}
+
+
+def cvar(wealth, payoff, VaRs):
+    cvars = np.zeros(len(VaRs))
+    tw = wealth - payoff
+    for i in range(len(VaRs)):
+        cvars[i] = tw[tw < VaRs[i]].mean()
+    return cvars
+
+
+CVaRs = {
+    "Nothing": cvar(wealth_nothing, payoffs, VaRs["Nothing"]),
+    "NN": cvar(wealth_NN, payoffs, VaRs["NN"]),
+    "BS": cvar(wealth_BS, payoffs, VaRs["BS"]),
+    "SABR": cvar(wealth_SABR, payoffs, VaRs["SABR"])
+}
+
+VaRs = pd.concat([pd.DataFrame(VaRs), pd.Series(1-quantiles).rename("Quantiles")], axis=1).set_index("Quantiles")
+CVaRs = pd.concat([pd.DataFrame(CVaRs), pd.Series(1-quantiles).rename("Quantiles")], axis=1).set_index("Quantiles")
+
+print(VaRs)
+print(CVaRs)
