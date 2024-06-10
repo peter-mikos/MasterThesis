@@ -1,6 +1,4 @@
 TODO:
-- volvol richtig berechnen --> time lags beachten
-- Darstellung: distribution of terminal wealth - payoff --> Expected Shortfall and Value at Risk!!!
-- Hedge Ratio's
+- Hedge Positions
 
 - ITM and OTM networks
