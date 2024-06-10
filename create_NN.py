@@ -10,11 +10,13 @@ seed_test = 420  # seed for testing
 params = get_parameters()
 
 # plot showing the futures path
-plt.plot(params["data"].t, params["data"].F)
-plt.show()
+fig, axs = plt.subplots(2, 1)
+axs[0].plot(params["data"].index, params["data"].F)
+axs[0].set(ylabel="Futures Price USD/EUR")
 
 # plot shwowing the volatility path
-plt.plot(params["data"].t, params["data"].Sigma)
+axs[1].plot(params["data"].index, params["data"].Sigma*100)
+axs[1].set(ylabel="Volatility in %")
 plt.show()
 
 SABR_train = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
