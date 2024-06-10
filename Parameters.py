@@ -56,8 +56,8 @@ def get_parameters():
     )
     eurusd_daily.columns = ["F", "Sigma", "t"]
 
-    eurusd_daily["Sigma"] = eurusd_daily["Sigma"] / eurusd_daily.reset_index()["Date"].diff().transform(
-        lambda x: np.sqrt(x.days)).fillna(1)
+    eurusd_daily["Sigma"] = eurusd_daily["Sigma"] / eurusd_daily.reset_index().set_index("Date", drop=False)[
+        "Date"].diff().transform(lambda x: np.sqrt(x.days)).fillna(1)
 
     F0 = eurusd_daily.F[0]  # initial futures value
     alpha = eurusd_daily.Sigma[0]  # initial volatility value
