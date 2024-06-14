@@ -12,11 +12,11 @@ params = get_parameters()
 # plot showing the futures path
 fig, axs = plt.subplots(2, 1)
 axs[0].plot(params["data"].index, params["data"].F)
-axs[0].set(ylabel="Futures Price USD/EUR")
+axs[0].set(ylabel="Futures Price USD/EUR", title="Futures Price")
 
 # plot shwowing the volatility path
-axs[1].plot(params["data"].index, params["data"].Sigma * 100)
-axs[1].set(ylabel="Volatility in %")
+axs[1].plot(params["data"].index, params["data"].Sigma * 100, color="darkorange")
+axs[1].set(ylabel="Volatility in %", title="Volatility")
 plt.show()
 
 SABR_train = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
@@ -76,6 +76,7 @@ SABR_EC_hedge_OTM2.load_weights(cp_path="cp_otm2.weights.h5")
 SABR_EC_hedge_ITM.load_weights(cp_path="cp_itm.weights.h5")
 SABR_EC_hedge_ITM2.load_weights(cp_path="cp_itm2.weights.h5")
 
+
 def performance_summary(NN, test_paths, strike):
     # Loss Statistics
     NN.loss_test()
@@ -108,9 +109,9 @@ def performance_summary(NN, test_paths, strike):
     quantiles = np.array([0.001, 0.01, 0.025, 0.05])
     VaRs = {
         "Nothing": np.quantile(wealth_nothing, quantiles),
-        "NN": np.quantile(wealth_NN, quantiles),
         "BS": np.quantile(wealth_BS, quantiles),
-        "SABR": np.quantile(wealth_SABR, quantiles)
+        "SABR": np.quantile(wealth_SABR, quantiles),
+        "NN": np.quantile(wealth_NN, quantiles)
     }
 
     def cvar(wealth, VaRs):
@@ -122,9 +123,9 @@ def performance_summary(NN, test_paths, strike):
 
     CVaRs = {
         "Nothing": cvar(wealth_nothing, VaRs["Nothing"]),
-        "NN": cvar(wealth_NN, VaRs["NN"]),
         "BS": cvar(wealth_BS, VaRs["BS"]),
-        "SABR": cvar(wealth_SABR, VaRs["SABR"])
+        "SABR": cvar(wealth_SABR, VaRs["SABR"]),
+        "NN": cvar(wealth_NN, VaRs["NN"])
     }
 
     VaRs = pd.concat([pd.DataFrame(VaRs), pd.Series(1 - quantiles).rename("Quantiles")], axis=1).set_index("Quantiles")
@@ -134,23 +135,26 @@ def performance_summary(NN, test_paths, strike):
     print(VaRs)
     print(CVaRs)
 
+    VaRs.to_latex()
+    CVaRs.to_latex()
+
 
 # ATM
 print("ATM")
 performance_summary(SABR_EC_hedge, SABR_test, params["F0"])
 
 # OTM
-print("OTM")
-performance_summary(SABR_EC_hedge_OTM, SABR_test, params["F0"] * 1.1)
+# print("OTM")
+# performance_summary(SABR_EC_hedge_OTM, SABR_test, params["F0"] * 1.1)
 
 # OTM 2
 print("OTM 2")
 performance_summary(SABR_EC_hedge_OTM2, SABR_test, params["F0"] * 1.2)
 
 # ITM
-print("ITM")
-performance_summary(SABR_EC_hedge_ITM, SABR_test, params["F0"] * 0.9)
+# print("ITM")
+# performance_summary(SABR_EC_hedge_ITM, SABR_test, params["F0"] * 0.9)
 
 # ITM 2
-print("ITM 2")
-performance_summary(SABR_EC_hedge_ITM2, SABR_test, params["F0"] * 0.8)
+# print("ITM 2")
+# performance_summary(SABR_EC_hedge_ITM2, SABR_test, params["F0"] * 0.8)
