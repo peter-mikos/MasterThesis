@@ -133,10 +133,9 @@ def performance_summary(NN, test_paths, strike):
         "Quantiles")
 
     print(VaRs)
+    print(VaRs.to_latex())
     print(CVaRs)
-
-    VaRs.to_latex()
-    CVaRs.to_latex()
+    print(CVaRs.to_latex())
 
 
 # ATM
