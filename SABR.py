@@ -207,8 +207,10 @@ class SABR_model:
         wealth_SABR = self.get_price(step=0, K=K)
         wealth_BS = self.get_price(step=0, K=K, BS=True)
         for i in range(self.steps):
-            wealth_SABR = wealth_SABR + self.get_delta(step=i, K=K) * (self.futures_paths[i + 1, :] - self.futures_paths[i, :])
-            wealth_BS = wealth_BS + self.get_delta(step=i, K=K, BS=True) * (self.futures_paths[i + 1, :] - self.futures_paths[i, :])
+            wealth_SABR = wealth_SABR + self.get_delta(step=i, K=K) * (
+                    self.futures_paths[i + 1, :] - self.futures_paths[i, :])
+            wealth_BS = wealth_BS + self.get_delta(step=i, K=K, BS=True) * (
+                    self.futures_paths[i + 1, :] - self.futures_paths[i, :])
         self.wealth_SABR = wealth_SABR
         self.wealth_BS = wealth_BS
         self.wealth_nothing = self.get_price(step=0, K=K) / self.discount_factor(t=0)
@@ -216,14 +218,23 @@ class SABR_model:
         std_err = np.std(wealth_SABR - payoffs)
         loss_BS = np.mean((wealth_BS - payoffs) ** 2)
         std_err_BS = np.std(wealth_BS - payoffs)
+        loss_nothing = np.mean((self.wealth_nothing - payoffs) ** 2)
+        std_err_nothing = np.std(self.get_price(step=0, K=K) - payoffs)
         print("BS-Model-Hedge:\n" + "Loss (MSE): " + str(loss_BS) + "\n" +
               "Standard Error: " + str(std_err_BS))
         print("SABR-Model-Hedge:\n" + "Loss (MSE): " + str(loss) + "\n" +
               "Standard Error: " + str(std_err))
         print("This happens if we do nothing:\n" +
-              "Loss (MSE): " + str(
-            np.mean((self.wealth_nothing - payoffs) ** 2)) + "\n" +
-              "Standard Error: " + str(np.std(self.get_price(step=0, K=K) - payoffs)))
+              "Loss (MSE): " + str(loss_nothing) + "\n" +
+              "Standard Error: " + str(std_err_nothing))
+        return {
+            "loss_BS": loss_BS,
+            "std_err_BS": std_err_BS,
+            "loss_SABR": loss,
+            "std_err_SABR": std_err,
+            "loss_nothing": loss_nothing,
+            "std_err_nothing": std_err_nothing
+        }
 
 # Note:
 # one can create a BS model by specifying nu=0 --> constant volatility

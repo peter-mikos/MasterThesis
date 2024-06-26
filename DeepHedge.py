@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from keras.layers import Input, Dense, Flatten, Subtract, Multiply, Add, Dot, Concatenate, TimeDistributed, Dropout, Lambda
+from keras.layers import Input, Dense, Flatten, Subtract, Multiply, Add, Dot, Concatenate, TimeDistributed, Dropout, \
+    Lambda
 from keras.models import Sequential, Model
 
 
@@ -85,7 +86,7 @@ class Deep_Hedge:
         output = time_price
         for i in range(self.d):
             output = Dense(self.n, activation=self.activation)(output)
-            if i != self.d-1 and type(self.drop_out) != type(None):
+            if i != self.d - 1 and type(self.drop_out) != type(None):
                 output = Dropout(rate=self.drop_out)(output)
         output = Dense(self.m, activation='linear')(output)
         hedge = Model(inputs=time_price, outputs=output)
@@ -126,7 +127,8 @@ class Deep_Hedge:
                               callbacks=[cp_callback])
 
     def load_weights(self, cp_path="cp.weights.h5", learning_rate=0.0001):
-        self.model_wealth.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss="mean_squared_error")
+        self.model_wealth.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+                                  loss="mean_squared_error")
         self.model_wealth.load_weights(cp_path)
 
     def plot_hedge_ratio(self, step):
@@ -142,3 +144,4 @@ class Deep_Hedge:
         self.std_err = np.std(self.ytest - pr[:, 0])
         print("Neural Network:\n" + "Loss (MSE): " + str(self.test_loss) + "\n" +
               "Standard Error: " + str(self.std_err))
+        return {"loss_NN": self.test_loss, "std_err_NN": self.std_err}

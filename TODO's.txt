@@ -1,4 +1,4 @@
 TODO:
-- Hedge Positions
-
-- ITM and OTM networks
+- multiple currencies
+- check if sorting out "extreme" paths makes SABR perform better...
+- apply neural network on real paths of yyyy_CCYs

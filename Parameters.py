@@ -4,15 +4,7 @@ import datetime as dt
 import pandas as pd
 
 
-def get_parameters():
-    # Yield curve spot rate, 1-year maturity - Government bond, nominal, all issuers whose rating is triple A - Euro area
-    # source: https://data.ecb.europa.eu/data/datasets/YC/YC.B.U2.EUR.4F.G_N_A.SV_C_YM.SR_1Y
-    r_eur = 0.02518973
-
-    # Market Yield on U.S. Treasury Securities at 1-Year Constant Maturity, Quoted on an Investment Basis (DGS1)
-    # source: https://fred.stlouisfed.org/series/DGS1
-    r_usd = 0.0472
-
+def get_parameters(r_tar, r_base, zips, files):
     # Day Count Convention: ACT/ACT
     # 2023 had 365 days
     def year_frac(start, end, basis=365):
@@ -24,10 +16,10 @@ def get_parameters():
     # Read in tick-data from zip file
     eurusd = pd.concat(
         [
-            pd.read_csv(zipfile.ZipFile("HISTDATA_COM_ASCII_EURUSD_M12023.zip").open("DAT_ASCII_EURUSD_M1_2023.csv"),
+            pd.read_csv(zipfile.ZipFile("data/" + zips[0]).open("data/" + files[0]),
                         header=None, delimiter=";"),
             pd.read_csv(
-                zipfile.ZipFile("HISTDATA_COM_ASCII_EURUSD_M1202401.zip").open("DAT_ASCII_EURUSD_M1_202401.csv"),
+                zipfile.ZipFile("data/" + zips[1]).open("data/" + files[1]),
                 header=None, delimiter=";")
         ]
     )
@@ -41,8 +33,8 @@ def get_parameters():
     eurusd = eurusd.loc[dt.datetime(2023, 1, 2, 0, 0):dt.datetime(2024, 1, 2, 23, 59), "DateTime":"Close"]
     eurusd["Date"] = eurusd.DateTime.apply(lambda x: x.date())
     eurusd["YF"] = eurusd.DateTime.apply(lambda x: year_frac(x, dt.datetime(2024, 1, 2, 23, 59)))  # year fraction
-    eurusd["D_EUR"] = eurusd.YF.apply(lambda x: discount_factor(x, r_eur))
-    eurusd["D_USD"] = eurusd.YF.apply(lambda x: discount_factor(x, r_usd))
+    eurusd["D_EUR"] = eurusd.YF.apply(lambda x: discount_factor(x, r_base))
+    eurusd["D_USD"] = eurusd.YF.apply(lambda x: discount_factor(x, r_tar))
     # EUR is the base currency and USD the target currency so the forward price is:
     # Forward = Spot * D_USD / D_EUR
     eurusd["Close_Forward"] = eurusd.Close * eurusd.D_USD / eurusd.D_EUR
@@ -74,8 +66,8 @@ def get_parameters():
         "beta": beta,
         "rho": rho,
         "nu": nu,
-        "r_tar": r_usd,
-        "r_base": r_eur,
+        "r_tar": r_tar,
+        "r_base": r_base,
         "steps": steps,
         "T": T,
         "data": eurusd_daily
