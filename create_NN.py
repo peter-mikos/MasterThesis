@@ -47,17 +47,22 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True):
               initial_wealth=np.mean(paths_train.get_price(K=params["F0"], step=0)), actf="tanh", drop_out=None,
               n=300, d=3)
     if load:
-        atm.load_weights(cp_path="cp/cp_" + name + "_atm" + ".weights.h5")
-        otm.load_weights(cp_path="cp/cp_" + name + "_otm" + ".weights.h5")
-        otm2.load_weights(cp_path="cp/cp_" + name + "_otm2" + ".weights.h5")
-        itm.load_weights(cp_path="cp/cp_" + name + "_itm" + ".weights.h5")
-        itm2.load_weights(cp_path="cp/cp_" + name + "_itm2" + ".weights.h5")
+        atm.load_weights(cp_path="weights/cp_" + name + "_atm" + ".weights.h5")
+        otm.load_weights(cp_path="weights/cp_" + name + "_otm" + ".weights.h5")
+        otm2.load_weights(cp_path="weights/cp_" + name + "_otm2" + ".weights.h5")
+        itm.load_weights(cp_path="weights/cp_" + name + "_itm" + ".weights.h5")
+        itm2.load_weights(cp_path="weights/cp_" + name + "_itm2" + ".weights.h5")
     else:
-        atm.train(batch_size=500, epochs=20, learning_rate=0.0001, cp_path="cp/cp_" + name + "_atm" + ".weights.h5")
-        otm.train(batch_size=500, epochs=20, learning_rate=0.0001, cp_path="cp/cp_" + name + "_otm" + ".weights.h5")
-        otm2.train(batch_size=500, epochs=20, learning_rate=0.0001, cp_path="cp/cp_" + name + "_otm2" + ".weights.h5")
-        itm.train(batch_size=500, epochs=20, learning_rate=0.0001, cp_path="cp/cp_" + name + "_itm" + ".weights.h5")
-        itm2.train(batch_size=500, epochs=20, learning_rate=0.0001, cp_path="cp/cp_" + name + "_itm2" + ".weights.h5")
+        atm.train(batch_size=500, epochs=20, learning_rate=0.0001,
+                  cp_path="weights/cp_" + name + "_atm" + ".weights.h5")
+        otm.train(batch_size=500, epochs=20, learning_rate=0.0001,
+                  cp_path="weights/cp_" + name + "_otm" + ".weights.h5")
+        otm2.train(batch_size=500, epochs=20, learning_rate=0.0001,
+                   cp_path="weights/cp_" + name + "_otm2" + ".weights.h5")
+        itm.train(batch_size=500, epochs=20, learning_rate=0.0001,
+                  cp_path="weights/cp_" + name + "_itm" + ".weights.h5")
+        itm2.train(batch_size=500, epochs=20, learning_rate=0.0001,
+                   cp_path="weights/cp_" + name + "_itm2" + ".weights.h5")
 
     return {
         "atm": atm,
@@ -175,20 +180,90 @@ def performance_summaries(NNs):
 ##### PARAMETERS ###############################################################
 ################################################################################
 
-##### USD/EUR ##################################################################
-
 # Yield curve spot rate, 1-year maturity - Government bond, nominal, all issuers whose rating is triple A - Euro area
 # source: https://data.ecb.europa.eu/data/datasets/YC/YC.B.U2.EUR.4F.G_N_A.SV_C_YM.SR_1Y
 r_eur = 0.02518973
 # Market Yield on U.S. Treasury Securities at 1-Year Constant Maturity, Quoted on an Investment Basis (DGS1)
 # source: https://fred.stlouisfed.org/series/DGS1
 r_usd = 0.0472
+# Australia 1 Year Government Bond
+# source: https://www.marketwatch.com/investing/bond/tmbmkau-01y?countrycode=bx
+r_aud = 0.03361
+# U.K. 1 Year Gilt
+# source: https://www.marketwatch.com/investing/bond/tmbmkgb-01y?countrycode=bx
+r_gbp = 0.03326
+# New Zealand - 1 Year Government Bond Yield
+# source: https://www.worldgovernmentbonds.com/bond-historical-data/new-zealand/1-year/#title-historical-data
+r_nzd = 0.0515
+# Canada 1 Year Treasury Bill Yield
+# source: https://ycharts.com/indicators/canada_1_year_treasury_bill_yield#:~:text=Canada%201%20Year%20Treasury%20Bill%20Yield%20is%20at%204.37%25%2C%20compared,a%20maturity%20of%201%20year.
+r_cad = 0.0448
+# Switzerland - 1 Year Government Bond Yield
+# source: https://www.worldgovernmentbonds.com/bond-historical-data/switzerland/1-year/#title-historical-data
+r_chf = 0.01503
+# Switzerland - 1 Year Government Bond Yield
+# source: https://www.worldgovernmentbonds.com/bond-historical-data/hong-kong/1-year/#title-historical-data
+r_hkd = 0.04151
+# Japan 1 Year Government Bond
+# source: https://www.marketwatch.com/investing/bond/tmbmkjp-01y?countrycode=jp
+r_jpy = -0.0001
+# Switzerland - 1 Year Government Bond Yield
+# source: https://www.worldgovernmentbonds.com/bond-historical-data/norway/1-year/
+r_nok = 0.03243
 
 params_usd_eur = get_parameters(
     r_tar=r_usd,
     r_base=r_eur,
     zips=["HISTDATA_COM_ASCII_EURUSD_M12023.zip", "HISTDATA_COM_ASCII_EURUSD_M1202401.zip"],
     files=["DAT_ASCII_EURUSD_M1_2023.csv", "DAT_ASCII_EURUSD_M1_202401.csv"]
+)
+params_usd_aud = get_parameters(
+    r_tar=r_usd,
+    r_base=r_eur,
+    zips=["HISTDATA_COM_ASCII_AUDUSD_M12023.zip", "HISTDATA_COM_ASCII_AUDUSD_M1202401.zip"],
+    files=["DAT_ASCII_AUDUSD_M1_2023.csv", "DAT_ASCII_AUDUSD_M1_202401.csv"]
+)
+params_usd_gbp = get_parameters(
+    r_tar=r_usd,
+    r_base=r_gbp,
+    zips=["HISTDATA_COM_ASCII_GBPUSD_M12023.zip", "HISTDATA_COM_ASCII_GBPUSD_M1202401.zip"],
+    files=["DAT_ASCII_GBPUSD_M1_2023.csv", "DAT_ASCII_GBPUSD_M1_202401.csv"]
+)
+params_usd_nzd = get_parameters(
+    r_tar=r_usd,
+    r_base=r_nzd,
+    zips=["HISTDATA_COM_ASCII_NZDUSD_M12023.zip", "HISTDATA_COM_ASCII_NZDUSD_M1202401.zip"],
+    files=["DAT_ASCII_NZDUSD_M1_2023.csv", "DAT_ASCII_NZDUSD_M1_202401.csv"]
+)
+params_cad_usd = get_parameters(
+    r_tar=r_cad,
+    r_base=r_usd,
+    zips=["HISTDATA_COM_ASCII_USDCAD_M12023.zip", "HISTDATA_COM_ASCII_USDCAD_M1202401.zip"],
+    files=["DAT_ASCII_USDCAD_M1_2023.csv", "DAT_ASCII_USDCAD_M1_202401.csv"]
+)
+params_chf_usd = get_parameters(
+    r_tar=r_chf,
+    r_base=r_usd,
+    zips=["HISTDATA_COM_ASCII_USDCHF_M12023.zip", "HISTDATA_COM_ASCII_USDCHF_M1202401.zip"],
+    files=["DAT_ASCII_USDCHF_M1_2023.csv", "DAT_ASCII_USDCHF_M1_202401.csv"]
+)
+params_hkd_usd = get_parameters(
+    r_tar=r_hkd,
+    r_base=r_usd,
+    zips=["HISTDATA_COM_ASCII_USDHKD_M12023.zip", "HISTDATA_COM_ASCII_USDHKD_M1202401.zip"],
+    files=["DAT_ASCII_USDHKD_M1_2023.csv", "DAT_ASCII_USDHKD_M1_202401.csv"]
+)
+params_jpy_usd = get_parameters(
+    r_tar=r_jpy,
+    r_base=r_usd,
+    zips=["HISTDATA_COM_ASCII_USDJPY_M12023.zip", "HISTDATA_COM_ASCII_USDJPY_M1202401.zip"],
+    files=["DAT_ASCII_USDJPY_M1_2023.csv", "DAT_ASCII_USDJPY_M1_202401.csv"]
+)
+params_nok_usd = get_parameters(
+    r_tar=r_nok,
+    r_base=r_usd,
+    zips=["HISTDATA_COM_ASCII_USDNOK_M12023.zip", "HISTDATA_COM_ASCII_USDNOK_M1202401.zip"],
+    files=["DAT_ASCII_USDNOK_M1_2023.csv", "DAT_ASCII_USDNOK_M1_202401.csv"]
 )
 
 ################################################################################
@@ -204,10 +279,106 @@ nns_usd_eur = train_networks(
     load=load
 )
 
+print("USD_EUR Done!")
+
+##### USD/AUD ##################################################################
+
+# training/loading neural networks
+nns_usd_aud = train_networks(
+    params=params_usd_aud,
+    name="USD_AUD",
+    load=load
+)
+
+print("USD_AUD Done!")
+
+##### USD/GBP ##################################################################
+
+# training/loading neural networks
+nns_usd_gbp = train_networks(
+    params=params_usd_gbp,
+    name="USD_GBP",
+    load=load
+)
+
+print("USD_GBP Done!")
+
+##### USD/NZD ##################################################################
+
+# training/loading neural networks
+nns_usd_nzd = train_networks(
+    params=params_usd_nzd,
+    name="USD_NZD",
+    load=load
+)
+
+print("USD_NZD Done!")
+
+##### CAD/USD ##################################################################
+
+# training/loading neural networks
+nns_cad_usd = train_networks(
+    params=params_cad_usd,
+    name="CAD_USD",
+    load=load
+)
+
+print("CAD_USD Done!")
+
+##### CHF/USD ##################################################################
+
+# training/loading neural networks
+nns_chf_usd = train_networks(
+    params=params_chf_usd,
+    name="CHF_USD",
+    load=load
+)
+
+print("CHF_USD Done!")
+
+##### HKD/USD ##################################################################
+
+# training/loading neural networks
+nns_hkd_usd = train_networks(
+    params=params_hkd_usd,
+    name="HKD_USD",
+    load=load
+)
+
+print("HKD_USD Done!")
+
+##### JPY/USD ##################################################################
+
+# training/loading neural networks
+nns_jpy_usd = train_networks(
+    params=params_jpy_usd,
+    name="JPY_USD",
+    load=load
+)
+
+print("JPY_USD Done!")
+
+##### NOK/USD ##################################################################
+
+# training/loading neural networks
+nns_nok_usd = train_networks(
+    params=params_nok_usd,
+    name="NOK_USD",
+    load=load
+)
+
+print("NOK_USD Done!")
+
 ################################################################################
 ##### NETWORKS #################################################################
 ################################################################################
 
-##### USD/EUR ##################################################################
-
 performance_usd_eur = performance_summaries(nns_usd_eur)
+performance_usd_aud = performance_summaries(nns_usd_aud)
+performance_usd_gbp = performance_summaries(nns_usd_gbp)
+performance_usd_nzd = performance_summaries(nns_usd_nzd)
+performance_cad_usd = performance_summaries(nns_cad_usd)
+performance_chf_usd = performance_summaries(nns_chf_usd)
+performance_hkd_usd = performance_summaries(nns_hkd_usd)
+performance_jpy_usd = performance_summaries(nns_jpy_usd)
+performance_nok_usd = performance_summaries(nns_nok_usd)
