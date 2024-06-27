@@ -16,10 +16,10 @@ def get_parameters(r_tar, r_base, zips, files):
     # Read in tick-data from zip file
     eurusd = pd.concat(
         [
-            pd.read_csv(zipfile.ZipFile("data/" + zips[0]).open("data/" + files[0]),
+            pd.read_csv(zipfile.ZipFile("data/" + zips[0]).open(files[0]),
                         header=None, delimiter=";"),
             pd.read_csv(
-                zipfile.ZipFile("data/" + zips[1]).open("data/" + files[1]),
+                zipfile.ZipFile("data/" + zips[1]).open(files[1]),
                 header=None, delimiter=";")
         ]
     )
