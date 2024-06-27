@@ -27,8 +27,8 @@ def get_parameters(r_tar, r_base, zips, files):
     # Data transformation:
     basetar.columns = ["DateTime", "Open", "High", "Low", "Close", "Volume"]
     basetar.DateTime = basetar.DateTime.apply(lambda x: dt.datetime.strptime(x, '%Y%m%d %H%M%S'))
+    basetar.set_index("DateTime", drop=False, inplace=True)
     ind = (basetar.DateTime > dt.datetime(2023, 1, 2, 0, 0)) & (basetar.DateTime < dt.datetime(2024, 1, 2, 23, 59))
-    basetar = basetar.set_index(basetar.DateTime)
 
     # forward data
     basetar = basetar.loc[ind, "DateTime":"Close"]

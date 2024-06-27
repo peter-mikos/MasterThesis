@@ -1,4 +1,4 @@
 TODO:
-- multiple currencies
+- save parameters and performance summaries in jason files
 - check if sorting out "extreme" paths makes SABR perform better...
 - apply neural network on real paths of yyyy_CCYs
