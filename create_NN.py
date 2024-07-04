@@ -1,4 +1,4 @@
-import json
+import pickle
 import numpy as np
 import pandas as pd
 from SABR import SABR_model as path
@@ -83,7 +83,7 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True):
     }
 
 
-def performance_summary(NN, test_paths, strike):
+def performance_summary(NN, test_paths, strike, CCY, Moneyness):
     # Loss Statistics
     nn_loss = NN.loss_test()
     model_losses = test_paths.performance(K=strike)
@@ -123,7 +123,8 @@ def performance_summary(NN, test_paths, strike):
     for ax in axs.flat:
         ax.set(xlabel="terminal wealth - payoffs")
 
-    plt.show()
+    plt.subplots_adjust(hspace=0.5)
+    plt.savefig("plots/"+CCY+"_"+Moneyness+".png", format="png")
 
     # Risk measures
     quantiles = np.array([0.001, 0.01, 0.025, 0.05])
@@ -167,13 +168,13 @@ def performance_summary(NN, test_paths, strike):
     }
 
 
-def performance_summaries(NNs):
+def performance_summaries(NNs, CCY):
     return {
-        "ATM": performance_summary(NNs["atm"], NNs["test"], NNs["strikes"]["atm"]),
-        "OTM": performance_summary(NNs["otm"], NNs["test"], NNs["strikes"]["otm"]),
-        "OTM2": performance_summary(NNs["otm2"], NNs["test"], NNs["strikes"]["otm2"]),
-        "ITM": performance_summary(NNs["itm"], NNs["test"], NNs["strikes"]["itm"]),
-        "ITM2": performance_summary(NNs["itm2"], NNs["test"], NNs["strikes"]["itm2"])
+        "ATM": performance_summary(NNs["atm"], NNs["test"], NNs["strikes"]["atm"], CCY, "ATM"),
+        "OTM": performance_summary(NNs["otm"], NNs["test"], NNs["strikes"]["otm"], CCY, "OTM"),
+        "OTM2": performance_summary(NNs["otm2"], NNs["test"], NNs["strikes"]["otm2"], CCY, "OTM2"),
+        "ITM": performance_summary(NNs["itm"], NNs["test"], NNs["strikes"]["itm"], CCY, "ITM"),
+        "ITM2": performance_summary(NNs["itm2"], NNs["test"], NNs["strikes"]["itm2"], CCY, "ITM2")
     }
 
 
@@ -362,27 +363,27 @@ print("HKD_USD Done!")
 ##### NOK/USD ##################################################################
 
 # training/loading neural networks
-nns_nok_usd = train_networks(
-    params=params_nok_usd,
-    name="NOK_USD",
-    load=load
-)
+# nns_nok_usd = train_networks(
+#     params=params_nok_usd,
+#     name="NOK_USD",
+#     load=load
+# )
 
-print("NOK_USD Done!")
+# print("NOK_USD Done!")
 
 ################################################################################
 ##### NETWORKS #################################################################
 ################################################################################
 
-performance_usd_eur = performance_summaries(nns_usd_eur)
-performance_usd_aud = performance_summaries(nns_usd_aud)
-performance_usd_gbp = performance_summaries(nns_usd_gbp)
-performance_usd_nzd = performance_summaries(nns_usd_nzd)
-performance_cad_usd = performance_summaries(nns_cad_usd)
-performance_chf_usd = performance_summaries(nns_chf_usd)
-performance_hkd_usd = performance_summaries(nns_hkd_usd)
+performance_usd_eur = performance_summaries(nns_usd_eur, "USD_EUR")
+performance_usd_aud = performance_summaries(nns_usd_aud, "USD_EUR")
+performance_usd_gbp = performance_summaries(nns_usd_gbp, "USD_GBP")
+performance_usd_nzd = performance_summaries(nns_usd_nzd, "USD_NZD")
+performance_cad_usd = performance_summaries(nns_cad_usd, "CAD_USD")
+performance_chf_usd = performance_summaries(nns_chf_usd, "CHF_USD")
+performance_hkd_usd = performance_summaries(nns_hkd_usd, "HKD_USD")
 # performance_jpy_usd = performance_summaries(nns_jpy_usd)
-performance_nok_usd = performance_summaries(nns_nok_usd)
+# performance_nok_usd = performance_summaries(nns_nok_usd)
 
 performance = {
     "EUR": performance_usd_eur,
@@ -391,6 +392,7 @@ performance = {
     "NZD": performance_usd_nzd,
     "CAD": performance_cad_usd,
     "CHF": performance_chf_usd,
-    "HKD": performance_hkd_usd,
-    "NOK": performance_nok_usd
+    "HKD": performance_hkd_usd
 }
+
+pickle.dump(performance, open("performance/performance.p", "wb"))
