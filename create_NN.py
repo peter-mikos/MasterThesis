@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import pandas as pd
 from SABR import SABR_model as path
@@ -7,7 +8,7 @@ import matplotlib.pyplot as plt
 
 seed_train = 10538  # seed for training
 seed_test = 420  # seed for testing
-load = False  # should NN-weights be loaded or should they be retrained
+load = True  # should NN-weights be loaded or should they be retrained
 
 
 def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True):
@@ -350,13 +351,13 @@ print("HKD_USD Done!")
 ##### JPY/USD ##################################################################
 
 # training/loading neural networks
-nns_jpy_usd = train_networks(
-    params=params_jpy_usd,
-    name="JPY_USD",
-    load=load
-)
+# nns_jpy_usd = train_networks(
+#     params=params_jpy_usd,
+#     name="JPY_USD",
+#     load=False
+# )
 
-print("JPY_USD Done!")
+# print("JPY_USD Done!")   # TODO
 
 ##### NOK/USD ##################################################################
 
@@ -380,5 +381,16 @@ performance_usd_nzd = performance_summaries(nns_usd_nzd)
 performance_cad_usd = performance_summaries(nns_cad_usd)
 performance_chf_usd = performance_summaries(nns_chf_usd)
 performance_hkd_usd = performance_summaries(nns_hkd_usd)
-performance_jpy_usd = performance_summaries(nns_jpy_usd)
+# performance_jpy_usd = performance_summaries(nns_jpy_usd)
 performance_nok_usd = performance_summaries(nns_nok_usd)
+
+performance = {
+    "EUR": performance_usd_eur,
+    "AUD": performance_usd_aud,
+    "GBP": performance_usd_gbp,
+    "NZD": performance_usd_nzd,
+    "CAD": performance_cad_usd,
+    "CHF": performance_chf_usd,
+    "HKD": performance_hkd_usd,
+    "NOK": performance_nok_usd
+}
