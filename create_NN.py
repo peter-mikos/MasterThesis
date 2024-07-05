@@ -15,7 +15,7 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True):
     paths_train = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
                        params["r_base"], params["steps"], 30000, params["T"], seed_train, voltype="daily")
     paths_test = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
-                      params["r_base"], params["steps"], 1000, params["T"], seed_train, voltype="daily")
+                      params["r_base"], params["steps"], 10000, params["T"], seed_train, voltype="daily")
 
     itm2 = dh(train_pathes=paths_train.futures_paths, other_train=[paths_train.vol_paths],
               ytrain=paths_train.payoff(K=params["F0"] * strikes[0]),
