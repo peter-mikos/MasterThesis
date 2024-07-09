@@ -106,12 +106,12 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
         real_loss["futp"].transpose(),
         [real_loss["volp"]]
     )
-    real_NN_loss = NN.model_wealth_predict(x=x_real) - real_loss["payoff"]
+    real_NN_loss = NN.model_wealth.predict(x=x_real) - real_loss["payoff"]
 
     real_performance = {
         "Nothing": real_loss["Nothing"],
         "BS": real_loss["BS"],
-        "SABR": real_loss["NN"],
+        "SABR": real_loss["SABR"],
         "NN": real_NN_loss
     }
 
@@ -180,6 +180,8 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
     CVaRs = pd.concat([pd.DataFrame(CVaRs), pd.Series(1 - quantiles).rename("Quantiles")], axis=1).set_index(
         "Quantiles")
 
+    print("real_loss")
+    print(real_performance)
     print("VaR:")
     print(VaRs)
     print(VaRs.to_latex())
@@ -188,6 +190,7 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
     print(CVaRs.to_latex())
 
     return {
+        "Real_Loss": real_performance,
         "Loss": losses,
         "Standard Error": std_errs,
         "VaR": VaRs,
@@ -195,13 +198,13 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
     }
 
 
-def performance_summaries(NNs, CCY):
+def performance_summaries(NNs, CCY, true_path):
     return {
-        "ATM": performance_summary(NNs["atm"], NNs["test"], NNs["strikes"]["atm"], CCY, "ATM"),
-        "OTM": performance_summary(NNs["otm"], NNs["test"], NNs["strikes"]["otm"], CCY, "OTM"),
-        "OTM2": performance_summary(NNs["otm2"], NNs["test"], NNs["strikes"]["otm2"], CCY, "OTM2"),
-        "ITM": performance_summary(NNs["itm"], NNs["test"], NNs["strikes"]["itm"], CCY, "ITM"),
-        "ITM2": performance_summary(NNs["itm2"], NNs["test"], NNs["strikes"]["itm2"], CCY, "ITM2")
+        "ATM": performance_summary(NNs["atm"], NNs["test"], NNs["strikes"]["atm"], CCY, "ATM", true_path=true_path),
+        "OTM": performance_summary(NNs["otm"], NNs["test"], NNs["strikes"]["otm"], CCY, "OTM", true_path=true_path),
+        "OTM2": performance_summary(NNs["otm2"], NNs["test"], NNs["strikes"]["otm2"], CCY, "OTM2", true_path=true_path),
+        "ITM": performance_summary(NNs["itm"], NNs["test"], NNs["strikes"]["itm"], CCY, "ITM", true_path=true_path),
+        "ITM2": performance_summary(NNs["itm2"], NNs["test"], NNs["strikes"]["itm2"], CCY, "ITM2", true_path=true_path)
     }
 
 
@@ -362,13 +365,13 @@ print("HKD_USD Done!")
 ##### NETWORKS #################################################################
 ################################################################################
 
-performance_usd_eur = performance_summaries(nns_usd_eur, "USD_EUR")
-performance_usd_aud = performance_summaries(nns_usd_aud, "USD_EUR")
-performance_usd_gbp = performance_summaries(nns_usd_gbp, "USD_GBP")
-performance_usd_nzd = performance_summaries(nns_usd_nzd, "USD_NZD")
-performance_cad_usd = performance_summaries(nns_cad_usd, "CAD_USD")
-performance_chf_usd = performance_summaries(nns_chf_usd, "CHF_USD")
-performance_hkd_usd = performance_summaries(nns_hkd_usd, "HKD_USD")
+performance_usd_eur = performance_summaries(nns_usd_eur, "USD_EUR", true_path=params_usd_eur["data"])
+performance_usd_aud = performance_summaries(nns_usd_aud, "USD_EUR", true_path=params_usd_aud["data"])
+performance_usd_gbp = performance_summaries(nns_usd_gbp, "USD_GBP", true_path=params_usd_gbp["data"])
+performance_usd_nzd = performance_summaries(nns_usd_nzd, "USD_NZD", true_path=params_usd_nzd["data"])
+performance_cad_usd = performance_summaries(nns_cad_usd, "CAD_USD", true_path=params_cad_usd["data"])
+performance_chf_usd = performance_summaries(nns_chf_usd, "CHF_USD", true_path=params_chf_usd["data"])
+performance_hkd_usd = performance_summaries(nns_hkd_usd, "HKD_USD", true_path=params_hkd_usd["data"])
 
 performance = {
     "EUR": performance_usd_eur,

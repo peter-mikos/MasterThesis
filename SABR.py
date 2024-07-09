@@ -248,7 +248,7 @@ class SABR_model:
                 steps=self.steps,
                 N=1
             )
-            sabr.futures_paths[:, 0] = np.array(real_path["F0"])
+            sabr.futures_paths[:, 0] = np.array(real_path["F"])
             sabr.vol_paths[:, 0] = np.array(real_path["Sigma"])
             payoff = sabr.payoff(K=K)
             wealth_SABR = sabr.get_price(step=0, K=K)

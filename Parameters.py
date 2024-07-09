@@ -68,7 +68,7 @@ def get_parameters(r_tar, r_base, zips, files):
     new_data["F"] = basetar_daily["F"]
     new_data["Sigma"] = basetar_daily["Sigma"]
     new_data["t"] = basetar_daily["t"]
-    new_data.interpolate(method="linear")
+    new_data.interpolate(method="linear", limit=len(new_data), inplace=True, limit_direction="both")
 
 
     return {
