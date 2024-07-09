@@ -1,4 +1,5 @@
 TODO:
-- save parameters and performance summaries in jason files
-- check if sorting out "extreme" paths makes SABR perform better...
+- check if sorting out "extreme" paths makes SABR perform better
+-> Not True; most of the time it's quite the opposite: NN performs even better...
+
 - apply neural network on real paths of yyyy_CCYs

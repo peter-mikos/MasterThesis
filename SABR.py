@@ -202,40 +202,68 @@ class SABR_model:
         sigma_pr = self.sigma_prime(F, K, tau, self.vol_paths[step, :])
         return BSd + BSv * sigma_pr
 
-    def performance(self, K):
-        payoffs = self.payoff(K=K)
-        wealth_SABR = self.get_price(step=0, K=K)
-        wealth_BS = self.get_price(step=0, K=K, BS=True)
-        for i in range(self.steps):
-            wealth_SABR = wealth_SABR + self.get_delta(step=i, K=K) * (
-                    self.futures_paths[i + 1, :] - self.futures_paths[i, :])
-            wealth_BS = wealth_BS + self.get_delta(step=i, K=K, BS=True) * (
-                    self.futures_paths[i + 1, :] - self.futures_paths[i, :])
-        self.wealth_SABR = wealth_SABR
-        self.wealth_BS = wealth_BS
-        self.wealth_nothing = self.get_price(step=0, K=K) / self.discount_factor(t=0)
-        loss = np.mean((wealth_SABR - payoffs) ** 2)
-        std_err = np.std(wealth_SABR - payoffs)
-        loss_BS = np.mean((wealth_BS - payoffs) ** 2)
-        std_err_BS = np.std(wealth_BS - payoffs)
-        loss_nothing = np.mean((self.wealth_nothing - payoffs) ** 2)
-        std_err_nothing = np.std(self.get_price(step=0, K=K) - payoffs)
-        print("BS-Model-Hedge:\n" + "Loss (MSE): " + str(loss_BS) + "\n" +
-              "Standard Error: " + str(std_err_BS))
-        print("SABR-Model-Hedge:\n" + "Loss (MSE): " + str(loss) + "\n" +
-              "Standard Error: " + str(std_err))
-        print("This happens if we do nothing:\n" +
-              "Loss (MSE): " + str(loss_nothing) + "\n" +
-              "Standard Error: " + str(std_err_nothing))
-        return {
-            "loss_BS": loss_BS,
-            "std_err_BS": std_err_BS,
-            "loss_SABR": loss,
-            "std_err_SABR": std_err,
-            "loss_nothing": loss_nothing,
-            "std_err_nothing": std_err_nothing
-        }
-
-# Note:
-# one can create a BS model by specifying nu=0 --> constant volatility
-# and using sigma=True for pricing and delta
+    def performance(self, K, real_path=None):
+        if type(None) == type(real_path):
+            payoffs = self.payoff(K=K)
+            wealth_SABR = self.get_price(step=0, K=K)
+            wealth_BS = self.get_price(step=0, K=K, BS=True)
+            for i in range(self.steps):
+                wealth_SABR = wealth_SABR + self.get_delta(step=i, K=K) * (
+                        self.futures_paths[i + 1, :] - self.futures_paths[i, :])
+                wealth_BS = wealth_BS + self.get_delta(step=i, K=K, BS=True) * (
+                        self.futures_paths[i + 1, :] - self.futures_paths[i, :])
+            self.wealth_SABR = wealth_SABR
+            self.wealth_BS = wealth_BS
+            self.wealth_nothing = self.get_price(step=0, K=K) / self.discount_factor(t=0)
+            loss = np.mean((wealth_SABR - payoffs) ** 2)
+            std_err = np.std(wealth_SABR - payoffs)
+            loss_BS = np.mean((wealth_BS - payoffs) ** 2)
+            std_err_BS = np.std(wealth_BS - payoffs)
+            loss_nothing = np.mean((self.wealth_nothing - payoffs) ** 2)
+            std_err_nothing = np.std(self.get_price(step=0, K=K) - payoffs)
+            print("BS-Model-Hedge:\n" + "Loss (MSE): " + str(loss_BS) + "\n" +
+                  "Standard Error: " + str(std_err_BS))
+            print("SABR-Model-Hedge:\n" + "Loss (MSE): " + str(loss) + "\n" +
+                  "Standard Error: " + str(std_err))
+            print("This happens if we do nothing:\n" +
+                  "Loss (MSE): " + str(loss_nothing) + "\n" +
+                  "Standard Error: " + str(std_err_nothing))
+            return {
+                "loss_BS": loss_BS,
+                "std_err_BS": std_err_BS,
+                "loss_SABR": loss,
+                "std_err_SABR": std_err,
+                "loss_nothing": loss_nothing,
+                "std_err_nothing": std_err_nothing
+            }
+        else:
+            sabr = SABR_model(
+                F0=self.F0,
+                alpha=self.alpha,
+                beta=self.beta,
+                rho=self.rho,
+                nu=self.nu,
+                r_tar=self.r_tar,
+                r_base=self.r_base,
+                steps=self.steps,
+                N=1
+            )
+            sabr.futures_paths[:, 0] = np.array(real_path["F0"])
+            sabr.vol_paths[:, 0] = np.array(real_path["Sigma"])
+            payoff = sabr.payoff(K=K)
+            wealth_SABR = sabr.get_price(step=0, K=K)
+            wealth_BS = sabr.get_price(step=0, K=K, BS=True)
+            wealth_nothing = sabr.get_price(step=0, K=K) / sabr.discount_factor(t=0)
+            for i in range(sabr.steps):
+                wealth_SABR = wealth_SABR + sabr.get_delta(step=i, K=K) * (
+                        sabr.futures_paths[i + 1, 0] - sabr.futures_paths[i, 0])
+                wealth_BS = wealth_BS + sabr.get_delta(step=i, K=K, BS=True) * (
+                        sabr.futures_paths[i + 1, 0] - sabr.futures_paths[i, 0])
+            return {
+                "BS": wealth_BS - payoff,
+                "SABR": wealth_SABR - payoff,
+                "Nothing": wealth_nothing - payoff,
+                "payoff": payoff,
+                "futp": sabr.futures_paths,
+                "volp": sabr.vol_paths
+            }

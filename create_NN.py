@@ -1,7 +1,7 @@
 import pickle
 import numpy as np
 import pandas as pd
-from SABR import SABR_model as path
+from SABR import SABR_model
 from DeepHedge import Deep_Hedge as dh
 from Parameters import get_parameters
 import matplotlib.pyplot as plt
@@ -11,11 +11,23 @@ seed_test = 420  # seed for testing
 load = True  # should NN-weights be loaded or should they be retrained
 
 
-def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True):
-    paths_train = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
+def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, extremes=True):
+    paths_train = SABR_model(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
                        params["r_base"], params["steps"], 30000, params["T"], seed_train, voltype="daily")
-    paths_test = path(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
+    paths_test = SABR_model(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
                       params["r_base"], params["steps"], 10000, params["T"], seed_train, voltype="daily")
+
+    if not extremes:
+        # extreme paths are sorted out to see if they make the neural networks perform so much better.
+        steps, npaths = np.shape(paths_test.futures_paths)
+        fpaths_new = list()
+        volpaths_new = list()
+        for i in range(npaths):
+            if np.max(paths_test.futures_paths[:, i]) < params["F0"] * 3 and np.min(paths_test.futures_paths[:, i]) > params["F0"] * 1/3:
+                fpaths_new.append(paths_test.futures_paths[:, i])
+                volpaths_new.append(paths_test.vol_paths[:, i])
+        paths_test.futures_paths = np.array(fpaths_new).transpose()
+        paths_test.vol_paths = np.array(volpaths_new).transpose()
 
     itm2 = dh(train_pathes=paths_train.futures_paths, other_train=[paths_train.vol_paths],
               ytrain=paths_train.payoff(K=params["F0"] * strikes[0]),
@@ -83,10 +95,25 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True):
     }
 
 
-def performance_summary(NN, test_paths, strike, CCY, Moneyness):
+def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
+
     # Loss Statistics
     nn_loss = NN.loss_test()
     model_losses = test_paths.performance(K=strike)
+    real_loss = test_paths.performance(K=strike, real_path=true_path)
+
+    x_real = NN.shape_inputs(
+        real_loss["futp"].transpose(),
+        [real_loss["volp"]]
+    )
+    real_NN_loss = NN.model_wealth_predict(x=x_real) - real_loss["payoff"]
+
+    real_performance = {
+        "Nothing": real_loss["Nothing"],
+        "BS": real_loss["BS"],
+        "SABR": real_loss["NN"],
+        "NN": real_NN_loss
+    }
 
     losses = {
         "Nothing": model_losses["loss_nothing"],
@@ -206,12 +233,6 @@ r_chf = 0.01503
 # Switzerland - 1 Year Government Bond Yield
 # source: https://www.worldgovernmentbonds.com/bond-historical-data/hong-kong/1-year/#title-historical-data
 r_hkd = 0.04151
-# Japan 1 Year Government Bond
-# source: https://www.marketwatch.com/investing/bond/tmbmkjp-01y?countrycode=jp
-r_jpy = -0.0001
-# Switzerland - 1 Year Government Bond Yield
-# source: https://www.worldgovernmentbonds.com/bond-historical-data/norway/1-year/
-r_nok = 0.03243
 
 params_usd_eur = get_parameters(
     r_tar=r_usd,
@@ -254,18 +275,6 @@ params_hkd_usd = get_parameters(
     r_base=r_usd,
     zips=["HISTDATA_COM_ASCII_USDHKD_M12023.zip", "HISTDATA_COM_ASCII_USDHKD_M1202401.zip"],
     files=["DAT_ASCII_USDHKD_M1_2023.csv", "DAT_ASCII_USDHKD_M1_202401.csv"]
-)
-params_jpy_usd = get_parameters(
-    r_tar=r_jpy,
-    r_base=r_usd,
-    zips=["HISTDATA_COM_ASCII_USDJPY_M12023.zip", "HISTDATA_COM_ASCII_USDJPY_M1202401.zip"],
-    files=["DAT_ASCII_USDJPY_M1_2023.csv", "DAT_ASCII_USDJPY_M1_202401.csv"]
-)
-params_nok_usd = get_parameters(
-    r_tar=r_nok,
-    r_base=r_usd,
-    zips=["HISTDATA_COM_ASCII_USDNOK_M12023.zip", "HISTDATA_COM_ASCII_USDNOK_M1202401.zip"],
-    files=["DAT_ASCII_USDNOK_M1_2023.csv", "DAT_ASCII_USDNOK_M1_202401.csv"]
 )
 
 ################################################################################
@@ -349,28 +358,6 @@ nns_hkd_usd = train_networks(
 
 print("HKD_USD Done!")
 
-##### JPY/USD ##################################################################
-
-# training/loading neural networks
-# nns_jpy_usd = train_networks(
-#     params=params_jpy_usd,
-#     name="JPY_USD",
-#     load=False
-# )
-
-# print("JPY_USD Done!")   # TODO
-
-##### NOK/USD ##################################################################
-
-# training/loading neural networks
-# nns_nok_usd = train_networks(
-#     params=params_nok_usd,
-#     name="NOK_USD",
-#     load=load
-# )
-
-# print("NOK_USD Done!")
-
 ################################################################################
 ##### NETWORKS #################################################################
 ################################################################################
@@ -382,8 +369,6 @@ performance_usd_nzd = performance_summaries(nns_usd_nzd, "USD_NZD")
 performance_cad_usd = performance_summaries(nns_cad_usd, "CAD_USD")
 performance_chf_usd = performance_summaries(nns_chf_usd, "CHF_USD")
 performance_hkd_usd = performance_summaries(nns_hkd_usd, "HKD_USD")
-# performance_jpy_usd = performance_summaries(nns_jpy_usd)
-# performance_nok_usd = performance_summaries(nns_nok_usd)
 
 performance = {
     "EUR": performance_usd_eur,

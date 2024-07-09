@@ -46,25 +46,25 @@ class Deep_Hedge:
         self.create_model()
 
     def prepare_inputs(self):
-        def shape_inputs(pathes, other):
-            def TimeConv(t):
-                return self.T - t
-
-            K, N = np.shape(pathes)
-            N = N - 1
-            TimePoints = np.linspace(0, self.T, N + 1)
-            x = [np.zeros((K, N, self.o + 1 + self.m))] + [np.zeros((K, N, self.m))]
-            for i in range(N):  # time points
-                x[0][:, i, 0] = np.repeat(TimeConv(TimePoints[i]), K)
-            for j in range(self.o):  # additional inputs
-                x[0][:, :, j + 1] = other[j].transpose()[:, 0:N]
-            x[0][:, :, -1] = pathes[:, 0:N]
-            x[1][:, :, 0] = pathes[:, 1:(N + 1)] - pathes[:, 0:N]
-            return x
-
         # transposing inputs necessary
-        self.xtrain = shape_inputs(self.train_pathes.transpose(), self.other_train)
-        self.xtest = shape_inputs(self.test_pathes.transpose(), self.other_test)
+        self.xtrain = self.shape_inputs(self.train_pathes.transpose(), self.other_train)
+        self.xtest = self.shape_inputs(self.test_pathes.transpose(), self.other_test)
+
+    def shape_inputs(self, pathes, other):
+        def TimeConv(t):
+            return self.T - t
+
+        K, N = np.shape(pathes)
+        N = N - 1
+        TimePoints = np.linspace(0, self.T, N + 1)
+        x = [np.zeros((K, N, self.o + 1 + self.m))] + [np.zeros((K, N, self.m))]
+        for i in range(N):  # time points
+            x[0][:, i, 0] = np.repeat(TimeConv(TimePoints[i]), K)
+        for j in range(self.o):  # additional inputs
+            x[0][:, :, j + 1] = other[j].transpose()[:, 0:N]
+        x[0][:, :, -1] = pathes[:, 0:N]
+        x[1][:, :, 0] = pathes[:, 1:(N + 1)] - pathes[:, 0:N]
+        return x
 
     def create_model(self):
         # If no initial wealth is provided the NN will figure it out itself:

@@ -61,6 +61,16 @@ def get_parameters(r_tar, r_base, zips, files):
     steps = 365  # number of time steps
     T = 1  # time of maturity
 
+    new_data = pd.DataFrame(np.array(pd.date_range(start="2023-01-02", end="2024-01-02", freq="1D")),
+                            columns=["DateTime"])
+    new_data["Date"] = new_data["DateTime"].transform(lambda x: x.date())
+    new_data.set_index("Date", inplace=True)
+    new_data["F"] = basetar_daily["F"]
+    new_data["Sigma"] = basetar_daily["Sigma"]
+    new_data["t"] = basetar_daily["t"]
+    new_data.interpolate(method="linear")
+
+
     return {
         "F0": F0,
         "alpha": alpha,
@@ -71,5 +81,5 @@ def get_parameters(r_tar, r_base, zips, files):
         "r_base": r_base,
         "steps": steps,
         "T": T,
-        "data": basetar_daily
+        "data": new_data
     }
