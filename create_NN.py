@@ -383,4 +383,15 @@ performance = {
     "HKD": performance_hkd_usd
 }
 
+parameters = {
+    "EUR": params_usd_eur,
+    "AUD": params_usd_aud,
+    "GBP": params_usd_gbp,
+    "NZD": params_usd_nzd,
+    "CAD": params_cad_usd,
+    "CHF": params_chf_usd,
+    "HKD": params_hkd_usd
+}
+
 pickle.dump(performance, open("performance/performance.p", "wb"))
+pickle.dump(parameters, open("performance/parameters.p", "wb"))

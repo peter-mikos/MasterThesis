@@ -8,6 +8,7 @@ Questions:
 - How much time will you appr. need for grading?
 - When should I submit such that I finish by or in September?
 - 40 pages? What is included in the 40 pages?
+- Should I create doc-strings for code and comment it out?
 
 Proposed Structure:
 - Abstract
