@@ -7,7 +7,6 @@ params = pickle.load(open("performance/parameters.p", "rb"))
 
 for CCY in performance.keys():
     for moneyness in performance[CCY].keys():
-        print(CCY + "_" + moneyness)
         table = pd.DataFrame(
             np.array([
                 "Loss on real Path",
@@ -22,7 +21,7 @@ for CCY in performance.keys():
                 "97.5%-CVaR",
                 "95%-CVaR"
             ]),
-            columns=["Metric"]
+            columns=[CCY + " " + moneyness]
         )
         for name in ["Nothing", "BS", "SABR"]:
             table[name] = pd.Series(np.array([
