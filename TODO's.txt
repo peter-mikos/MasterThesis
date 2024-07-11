@@ -1,5 +1,23 @@
-TODO:
+Results:
 - check if sorting out "extreme" paths makes SABR perform better
 -> Not True; most of the time it's quite the opposite: NN performs even better...
+- performance on real paths: SABR and BS very consistent, NN inconsistent -> conservative (too much wealth)
 
-- apply neural network on real paths of yyyy_CCYs
+Questions:
+- When are you on summer holiday?
+- How much time will you appr. need for grading?
+- When should I submit such that I finish by or in September?
+- 40 pages? What is included in the 40 pages?
+
+Proposed Structure:
+- Abstract
+- Introduction
+- Basic Concepts? If at all, which concepts?
+- SABR Model chapter: Model, Delta, Calibration, Simulation
+- Neural Network Chapter? Explaining the Basics of NN's? Necessary?
+- Deep Hedging Chapter: Literature Review, Explaination of Architecture etc.
+- "Numerical Study/Results" explaining Code, setup and results... -> main focus!
+- Conclusion
+
+--> How and where to put Tables? All? Or some and make references to appendix?
+--> Plots, what and where should I plot? Real paths? Wealth distributions?
