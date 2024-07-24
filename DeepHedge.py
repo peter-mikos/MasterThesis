@@ -120,7 +120,7 @@ class Deep_Hedge:
 
     def train(self, batch_size=500, epochs=20, learning_rate=0.0001, optimizer="adam", loss='mean_squared_error',
               cp_path="cp.weights.h5"):
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(cp_path, save_weights_only=True, verbose=1)
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=cp_path, save_best_only=True, save_weights_only=True, verbose=1)
 
         self.model_wealth.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss=loss)
         self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs,
