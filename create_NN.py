@@ -76,15 +76,15 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, ext
         itm.load_weights(cp_path="weights/cp_" + name + "_itm" + ".weights.h5")
         itm2.load_weights(cp_path="weights/cp_" + name + "_itm2" + ".weights.h5")
     else:
-        atm.train(batch_size=500, epochs=20, learning_rate=0.0001,
+        atm.train(batch_size=500, epochs=10, learning_rate=0.0001,
                   cp_path="weights/cp_" + name + "_atm" + ".weights.h5")
-        otm.train(batch_size=500, epochs=20, learning_rate=0.0001,
+        otm.train(batch_size=500, epochs=10, learning_rate=0.0001,
                   cp_path="weights/cp_" + name + "_otm" + ".weights.h5")
-        otm2.train(batch_size=500, epochs=20, learning_rate=0.0001,
+        otm2.train(batch_size=500, epochs=10, learning_rate=0.0001,
                    cp_path="weights/cp_" + name + "_otm2" + ".weights.h5")
-        itm.train(batch_size=500, epochs=20, learning_rate=0.0001,
+        itm.train(batch_size=500, epochs=10, learning_rate=0.0001,
                   cp_path="weights/cp_" + name + "_itm" + ".weights.h5")
-        itm2.train(batch_size=500, epochs=20, learning_rate=0.0001,
+        itm2.train(batch_size=500, epochs=10, learning_rate=0.0001,
                    cp_path="weights/cp_" + name + "_itm2" + ".weights.h5")
 
     return {
