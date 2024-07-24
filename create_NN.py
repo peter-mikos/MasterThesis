@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 seed_train = 10538  # seed for training
 seed_test = 420  # seed for testing
-load = True  # should NN-weights be loaded or should they be retrained
+load = False  # should NN-weights be loaded or should they be retrained
 
 
 def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, extremes=True):
