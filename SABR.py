@@ -69,7 +69,7 @@ class SABR_model:
                 size=self.N
             )
             volas[i + 1] = volas[i, :] + self.nu * volas[i, :] * dW[:, 0]
-            np.abs(volas[i + 1])
+            volas[i + 1] = np.abs(volas[i + 1])
             futures[i + 1] = futures[i, :] + volas[i] * (futures[i, :] ** self.beta) * dW[:, 1]
             futures[i + 1] = np.abs(futures[i + 1])
         self.vol_paths = volas
@@ -123,10 +123,9 @@ class SABR_model:
                 1 + (((1 - self.beta) ** 2) / 24) * (np.log(F / K) ** 2) + (((1 - self.beta) ** 4) / 1920) * (
                 np.log(F / K) ** 4)))
         f2 = Z / self.x(Z)
-        f3 = tau * (1 + (((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
+        f3 = 1 + (tau * ((((1 - self.beta) ** 2) / 24) * ((alpha_new ** 2) / ((F * K) ** (1 - self.beta))) + 0.25 * (
                 self.rho * self.beta * self.nu * alpha_new) / ((F * K) ** ((1 - self.beta) / 2)) + (
-                            self.nu ** 2) * (
-                            2 - 3 * (self.rho ** 2)) / 24)
+                            self.nu ** 2) * (2 - 3 * (self.rho ** 2)) / 24))
         res = f1 * f2 * f3
         if np.any(np.isnan(res)):
             ind = np.isnan(res)
@@ -171,9 +170,9 @@ class SABR_model:
         if (step > self.steps or step < 0) or type(step) != type(1):
             raise ValueError("You must specify 'step' correctly! Integer between 0 and " + str(self.steps))
         if BS:
-            return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], self.vol_paths[0, :], call,
+            return self.BS_pricer(F=self.futures_paths[step, :], K=K, t=self.time_points[step], alpha_new=self.vol_paths[0, :], call=call,
                                   sigma=self.vol_paths[0, :])
-        return self.BS_pricer(self.futures_paths[step, :], K, self.time_points[step], self.vol_paths[step, :], call)
+        return self.BS_pricer(F=self.futures_paths[step, :], K=K, t=self.time_points[step], alpha_new=self.vol_paths[step, :], call=call)
 
     def BS_delta(self, d1, tau, call):
         # BS delta for European call or put options
@@ -220,7 +219,7 @@ class SABR_model:
             loss_BS = np.mean((wealth_BS - payoffs) ** 2)
             std_err_BS = np.std(wealth_BS - payoffs)
             loss_nothing = np.mean((self.wealth_nothing - payoffs) ** 2)
-            std_err_nothing = np.std(self.get_price(step=0, K=K) - payoffs)
+            std_err_nothing = np.std(self.wealth_nothing - payoffs)
             print("BS-Model-Hedge:\n" + "Loss (MSE): " + str(loss_BS) + "\n" +
                   "Standard Error: " + str(std_err_BS))
             print("SABR-Model-Hedge:\n" + "Loss (MSE): " + str(loss) + "\n" +

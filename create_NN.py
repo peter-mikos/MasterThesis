@@ -12,10 +12,14 @@ load = True  # should NN-weights be loaded or should they be retrained
 
 
 def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, extremes=True):
-    paths_train = SABR_model(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
-                       params["r_base"], params["steps"], 30000, params["T"], seed_train, voltype="daily")
-    paths_test = SABR_model(params["F0"], params["alpha"], params["beta"], params["rho"], params["nu"], params["r_tar"],
-                      params["r_base"], params["steps"], 10000, params["T"], seed_train, voltype="daily")
+    paths_train = SABR_model(F0=params["F0"], alpha=params["alpha"], beta=params["beta"], rho=params["rho"],
+                             nu=params["nu"], r_tar=params["r_tar"],
+                             r_base=params["r_base"], steps=params["steps"], N=30000, T=params["T"], seed=seed_train,
+                             voltype="daily")
+    paths_test = SABR_model(F0=params["F0"], alpha=params["alpha"], beta=params["beta"], rho=params["rho"],
+                            nu=params["nu"], r_tar=params["r_tar"],
+                            r_base=params["r_base"], steps=params["steps"], N=10000, T=params["T"], seed=seed_test,
+                            voltype="daily")
 
     if not extremes:
         # extreme paths are sorted out to see if they make the neural networks perform so much better.
@@ -23,7 +27,8 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, ext
         fpaths_new = list()
         volpaths_new = list()
         for i in range(npaths):
-            if np.max(paths_test.futures_paths[:, i]) < params["F0"] * 3 and np.min(paths_test.futures_paths[:, i]) > params["F0"] * 1/3:
+            if np.max(paths_test.futures_paths[:, i]) < params["F0"] * 3 and np.min(paths_test.futures_paths[:, i]) > \
+                    params["F0"] * 1 / 3:
                 fpaths_new.append(paths_test.futures_paths[:, i])
                 volpaths_new.append(paths_test.vol_paths[:, i])
         paths_test.futures_paths = np.array(fpaths_new).transpose()
@@ -33,31 +38,36 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, ext
               ytrain=paths_train.payoff(K=params["F0"] * strikes[0]),
               test_pathes=paths_test.futures_paths, other_test=[paths_test.vol_paths],
               ytest=paths_test.payoff(K=params["F0"] * strikes[0]),
-              initial_wealth=np.mean(paths_train.get_price(K=params["F0"], step=0)), actf="tanh", drop_out=None,
+              initial_wealth=np.mean(paths_train.get_price(K=params["F0"] * strikes[0], step=0)), actf="tanh",
+              drop_out=None,
               n=300, d=3)
     itm = dh(train_pathes=paths_train.futures_paths, other_train=[paths_train.vol_paths],
              ytrain=paths_train.payoff(K=params["F0"] * strikes[1]),
              test_pathes=paths_test.futures_paths, other_test=[paths_test.vol_paths],
              ytest=paths_test.payoff(K=params["F0"] * strikes[1]),
-             initial_wealth=np.mean(paths_train.get_price(K=params["F0"], step=0)), actf="tanh", drop_out=None,
+             initial_wealth=np.mean(paths_train.get_price(K=params["F0"] * strikes[1], step=0)), actf="tanh",
+             drop_out=None,
              n=300, d=3)
     atm = dh(train_pathes=paths_train.futures_paths, other_train=[paths_train.vol_paths],
              ytrain=paths_train.payoff(K=params["F0"] * strikes[2]),
              test_pathes=paths_test.futures_paths, other_test=[paths_test.vol_paths],
-             ytest=paths_test.payoff(K=params["F0"] ** strikes[2]),
-             initial_wealth=np.mean(paths_train.get_price(K=params["F0"], step=0)), actf="tanh", drop_out=None,
+             ytest=paths_test.payoff(K=params["F0"] * strikes[2]),
+             initial_wealth=np.mean(paths_train.get_price(K=params["F0"] * strikes[2], step=0)), actf="tanh",
+             drop_out=None,
              n=300, d=3)
     otm = dh(train_pathes=paths_train.futures_paths, other_train=[paths_train.vol_paths],
              ytrain=paths_train.payoff(K=params["F0"] * strikes[3]),
              test_pathes=paths_test.futures_paths, other_test=[paths_test.vol_paths],
              ytest=paths_test.payoff(K=params["F0"] * strikes[3]),
-             initial_wealth=np.mean(paths_train.get_price(K=params["F0"], step=0)), actf="tanh", drop_out=None,
+             initial_wealth=np.mean(paths_train.get_price(K=params["F0"] * strikes[3], step=0)), actf="tanh",
+             drop_out=None,
              n=300, d=3)
     otm2 = dh(train_pathes=paths_train.futures_paths, other_train=[paths_train.vol_paths],
               ytrain=paths_train.payoff(K=params["F0"] * strikes[4]),
               test_pathes=paths_test.futures_paths, other_test=[paths_test.vol_paths],
               ytest=paths_test.payoff(K=params["F0"] * strikes[4]),
-              initial_wealth=np.mean(paths_train.get_price(K=params["F0"], step=0)), actf="tanh", drop_out=None,
+              initial_wealth=np.mean(paths_train.get_price(K=params["F0"] * strikes[4], step=0)), actf="tanh",
+              drop_out=None,
               n=300, d=3)
     if load:
         atm.load_weights(cp_path="weights/cp_" + name + "_atm" + ".weights.h5")
@@ -96,7 +106,6 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, ext
 
 
 def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
-
     # Loss Statistics
     nn_loss = NN.loss_test()
     model_losses = test_paths.performance(K=strike)
@@ -151,7 +160,7 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
         ax.set(xlabel="terminal wealth - payoffs")
 
     plt.subplots_adjust(hspace=0.5)
-    plt.savefig("plots/"+CCY+"_"+Moneyness+".png", format="png")
+    plt.savefig("plots/" + CCY + "_" + Moneyness + ".png", format="png")
 
     # Risk measures
     quantiles = np.array([0.001, 0.01, 0.025, 0.05])
@@ -200,11 +209,16 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
 
 def performance_summaries(NNs, CCY, true_path):
     return {
-        "ATM": performance_summary(NNs["atm"], NNs["test"], NNs["strikes"]["atm"], CCY, "ATM", true_path=true_path),
-        "OTM": performance_summary(NNs["otm"], NNs["test"], NNs["strikes"]["otm"], CCY, "OTM", true_path=true_path),
-        "OTM2": performance_summary(NNs["otm2"], NNs["test"], NNs["strikes"]["otm2"], CCY, "OTM2", true_path=true_path),
-        "ITM": performance_summary(NNs["itm"], NNs["test"], NNs["strikes"]["itm"], CCY, "ITM", true_path=true_path),
-        "ITM2": performance_summary(NNs["itm2"], NNs["test"], NNs["strikes"]["itm2"], CCY, "ITM2", true_path=true_path)
+        "ATM": performance_summary(NN=NNs["atm"], test_paths=NNs["test"], strike=NNs["strikes"]["atm"], CCY=CCY,
+                                   Moneyness="ATM", true_path=true_path),
+        "OTM": performance_summary(NN=NNs["otm"], test_paths=NNs["test"], strike=NNs["strikes"]["otm"], CCY=CCY,
+                                   Moneyness="OTM", true_path=true_path),
+        "OTM2": performance_summary(NN=NNs["otm2"], test_paths=NNs["test"], strike=NNs["strikes"]["otm2"], CCY=CCY,
+                                    Moneyness="OTM2", true_path=true_path),
+        "ITM": performance_summary(NN=NNs["itm"], test_paths=NNs["test"], strike=NNs["strikes"]["itm"], CCY=CCY,
+                                   Moneyness="ITM", true_path=true_path),
+        "ITM2": performance_summary(NN=NNs["itm2"], test_paths=NNs["test"], strike=NNs["strikes"]["itm2"], CCY=CCY,
+                                    Moneyness="ITM2", true_path=true_path)
     }
 
 
