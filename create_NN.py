@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 seed_train = 10538  # seed for training
 seed_test = 420  # seed for testing
 load = True  # should NN-weights be loaded or should they be retrained
+only_nn_hists = True
 
 
 def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, extremes=True):
@@ -146,12 +147,11 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path, only_
     wealth_nothing = test_paths.wealth_nothing - payoffs
 
     if only_nn_hist:
-        plt.hist(
-            wealth_NN,
-            title=CCY + " " + Moneyness + " - " + "Neural Network Losses",
-            xlabel="terminal wealth - payoffs"
-        )
+        plt.hist(wealth_NN)
+        plt.xlabel("terminal wealth - payoffs")
+        plt.title(CCY + " " + Moneyness + " - " + "Neural Network Losses")
         plt.savefig("plots/" + CCY + "_" + Moneyness + "_NN" + ".png", format="png")
+        plt.clf()
     else:
         # plotting wealth distributions:
         fig, axs = plt.subplots(2, 2)
@@ -387,13 +387,13 @@ print("HKD_USD Done!")
 ##### NETWORKS #################################################################
 ################################################################################
 
-performance_usd_eur = performance_summaries(nns_usd_eur, "USD_EUR", true_path=params_usd_eur["data"])
-performance_usd_aud = performance_summaries(nns_usd_aud, "USD_EUR", true_path=params_usd_aud["data"])
-performance_usd_gbp = performance_summaries(nns_usd_gbp, "USD_GBP", true_path=params_usd_gbp["data"])
-performance_usd_nzd = performance_summaries(nns_usd_nzd, "USD_NZD", true_path=params_usd_nzd["data"])
-performance_cad_usd = performance_summaries(nns_cad_usd, "CAD_USD", true_path=params_cad_usd["data"])
-performance_chf_usd = performance_summaries(nns_chf_usd, "CHF_USD", true_path=params_chf_usd["data"])
-performance_hkd_usd = performance_summaries(nns_hkd_usd, "HKD_USD", true_path=params_hkd_usd["data"])
+performance_usd_eur = performance_summaries(nns_usd_eur, "USD_EUR", true_path=params_usd_eur["data"], only_nn_hist=only_nn_hists)
+performance_usd_aud = performance_summaries(nns_usd_aud, "USD_EUR", true_path=params_usd_aud["data"], only_nn_hist=only_nn_hists)
+performance_usd_gbp = performance_summaries(nns_usd_gbp, "USD_GBP", true_path=params_usd_gbp["data"], only_nn_hist=only_nn_hists)
+performance_usd_nzd = performance_summaries(nns_usd_nzd, "USD_NZD", true_path=params_usd_nzd["data"], only_nn_hist=only_nn_hists)
+performance_cad_usd = performance_summaries(nns_cad_usd, "CAD_USD", true_path=params_cad_usd["data"], only_nn_hist=only_nn_hists)
+performance_chf_usd = performance_summaries(nns_chf_usd, "CHF_USD", true_path=params_chf_usd["data"], only_nn_hist=only_nn_hists)
+performance_hkd_usd = performance_summaries(nns_hkd_usd, "HKD_USD", true_path=params_hkd_usd["data"], only_nn_hist=only_nn_hists)
 
 performance = {
     "EUR": performance_usd_eur,
