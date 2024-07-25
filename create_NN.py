@@ -105,7 +105,7 @@ def train_networks(params, name, strikes=[0.6, 0.8, 1, 1.2, 1.4], load=True, ext
     }
 
 
-def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
+def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path, only_nn_hist=False):
     # Loss Statistics
     nn_loss = NN.loss_test()
     model_losses = test_paths.performance(K=strike)
@@ -145,22 +145,30 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
     wealth_SABR = test_paths.wealth_SABR - payoffs
     wealth_nothing = test_paths.wealth_nothing - payoffs
 
-    # plotting wealth distributions:
-    fig, axs = plt.subplots(2, 2)
-    axs[0, 0].hist(wealth_nothing)
-    axs[0, 0].set_title("Nothing")
-    axs[0, 1].hist(wealth_NN)
-    axs[0, 1].set_title("NN")
-    axs[1, 0].hist(wealth_BS)
-    axs[1, 0].set_title("BS")
-    axs[1, 1].hist(wealth_SABR)
-    axs[1, 1].set_title("SABR")
+    if only_nn_hist:
+        plt.hist(
+            wealth_NN,
+            title=CCY + " " + Moneyness + " - " + "Neural Network Losses",
+            xlabel="terminal wealth - payoffs"
+        )
+        plt.savefig("plots/" + CCY + "_" + Moneyness + "_NN" + ".png", format="png")
+    else:
+        # plotting wealth distributions:
+        fig, axs = plt.subplots(2, 2)
+        axs[0, 0].hist(wealth_nothing)
+        axs[0, 0].set_title("Nothing")
+        axs[0, 1].hist(wealth_NN)
+        axs[0, 1].set_title("NN")
+        axs[1, 0].hist(wealth_BS)
+        axs[1, 0].set_title("BS")
+        axs[1, 1].hist(wealth_SABR)
+        axs[1, 1].set_title("SABR")
 
-    for ax in axs.flat:
-        ax.set(xlabel="terminal wealth - payoffs")
+        for ax in axs.flat:
+            ax.set(xlabel="terminal wealth - payoffs")
 
-    plt.subplots_adjust(hspace=0.5)
-    plt.savefig("plots/" + CCY + "_" + Moneyness + ".png", format="png")
+        plt.subplots_adjust(hspace=0.5)
+        plt.savefig("plots/" + CCY + "_" + Moneyness + ".png", format="png")
 
     # Risk measures
     quantiles = np.array([0.001, 0.01, 0.025, 0.05])
@@ -207,18 +215,18 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path):
     }
 
 
-def performance_summaries(NNs, CCY, true_path):
+def performance_summaries(NNs, CCY, true_path, only_nn_hist=False):
     return {
         "ATM": performance_summary(NN=NNs["atm"], test_paths=NNs["test"], strike=NNs["strikes"]["atm"], CCY=CCY,
-                                   Moneyness="ATM", true_path=true_path),
+                                   Moneyness="ATM", true_path=true_path, only_nn_hist=only_nn_hist),
         "OTM": performance_summary(NN=NNs["otm"], test_paths=NNs["test"], strike=NNs["strikes"]["otm"], CCY=CCY,
-                                   Moneyness="OTM", true_path=true_path),
+                                   Moneyness="OTM", true_path=true_path, only_nn_hist=only_nn_hist),
         "OTM2": performance_summary(NN=NNs["otm2"], test_paths=NNs["test"], strike=NNs["strikes"]["otm2"], CCY=CCY,
-                                    Moneyness="OTM2", true_path=true_path),
+                                    Moneyness="OTM2", true_path=true_path, only_nn_hist=only_nn_hist),
         "ITM": performance_summary(NN=NNs["itm"], test_paths=NNs["test"], strike=NNs["strikes"]["itm"], CCY=CCY,
-                                   Moneyness="ITM", true_path=true_path),
+                                   Moneyness="ITM", true_path=true_path, only_nn_hist=only_nn_hist),
         "ITM2": performance_summary(NN=NNs["itm2"], test_paths=NNs["test"], strike=NNs["strikes"]["itm2"], CCY=CCY,
-                                    Moneyness="ITM2", true_path=true_path)
+                                    Moneyness="ITM2", true_path=true_path, only_nn_hist=only_nn_hist)
     }
 
 
