@@ -120,7 +120,8 @@ class Deep_Hedge:
 
     def train(self, batch_size=500, epochs=20, learning_rate=0.0001, optimizer="adam", loss='mean_squared_error',
               cp_path="cp.weights.h5"):
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=cp_path, monitor="loss", save_best_only=True, save_weights_only=True, verbose=1, save_freq="epoch")
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=cp_path, monitor="loss", save_best_only=True,
+                                                         save_weights_only=True, verbose=1, save_freq="epoch")
 
         self.model_wealth.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss=loss)
         self.model_wealth.fit(x=self.xtrain, y=self.ytrain, batch_size=batch_size, epochs=epochs,
@@ -142,6 +143,7 @@ class Deep_Hedge:
         pr = self.model_wealth.predict(x=self.xtest)
         self.test_loss = np.mean((self.ytest - pr[:, 0]) ** 2)
         self.std_err = np.std(self.ytest - pr[:, 0])
+        self.loss_mean = np.mean(self.ytest - pr[:, 0])
         print("Neural Network:\n" + "Loss (MSE): " + str(self.test_loss) + "\n" +
               "Standard Error: " + str(self.std_err))
-        return {"loss_NN": self.test_loss, "std_err_NN": self.std_err}
+        return {"loss_NN": self.test_loss, "std_err_NN": self.std_err, "mean": self.loss_mean}

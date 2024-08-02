@@ -139,6 +139,13 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path, only_
         "NN": nn_loss["std_err_NN"]
     }
 
+    means = {
+        "Nothing": model_losses["mean_nothing"],
+        "BS": model_losses["mean_BS"],
+        "SABR": model_losses["mean_SABR"],
+        "NN": nn_loss["mean"]
+    }
+
     # Terminal wealth - payoffs
     payoffs = test_paths.payoff(K=strike)
     wealth_NN = NN.model_wealth.predict(x=NN.xtest)[:, 0] - payoffs
@@ -210,6 +217,7 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path, only_
         "Real_Loss": real_performance,
         "Loss": losses,
         "Standard Error": std_errs,
+        "Mean": means,
         "VaR": VaRs,
         "CVaR": CVaRs
     }

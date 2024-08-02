@@ -216,10 +216,13 @@ class SABR_model:
             self.wealth_nothing = self.get_price(step=0, K=K) / self.discount_factor(t=0)
             loss = np.mean((wealth_SABR - payoffs) ** 2)
             std_err = np.std(wealth_SABR - payoffs)
+            mean = np.mean(wealth_SABR - payoffs)
             loss_BS = np.mean((wealth_BS - payoffs) ** 2)
             std_err_BS = np.std(wealth_BS - payoffs)
+            mean_BS = np.mean(wealth_BS - payoffs)
             loss_nothing = np.mean((self.wealth_nothing - payoffs) ** 2)
             std_err_nothing = np.std(self.wealth_nothing - payoffs)
+            mean_nothing = np.mean(self.wealth_nothing - payoffs)
             print("BS-Model-Hedge:\n" + "Loss (MSE): " + str(loss_BS) + "\n" +
                   "Standard Error: " + str(std_err_BS))
             print("SABR-Model-Hedge:\n" + "Loss (MSE): " + str(loss) + "\n" +
@@ -230,10 +233,13 @@ class SABR_model:
             return {
                 "loss_BS": loss_BS,
                 "std_err_BS": std_err_BS,
+                "mean_BS": mean_BS,
                 "loss_SABR": loss,
                 "std_err_SABR": std_err,
+                "mean_SABR": mean,
                 "loss_nothing": loss_nothing,
-                "std_err_nothing": std_err_nothing
+                "std_err_nothing": std_err_nothing,
+                "mean_nothing": mean_nothing
             }
         else:
             sabr = SABR_model(
