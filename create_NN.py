@@ -396,7 +396,7 @@ print("HKD_USD Done!")
 ################################################################################
 
 performance_usd_eur = performance_summaries(nns_usd_eur, "USD_EUR", true_path=params_usd_eur["data"], only_nn_hist=only_nn_hists)
-performance_usd_aud = performance_summaries(nns_usd_aud, "USD_EUR", true_path=params_usd_aud["data"], only_nn_hist=only_nn_hists)
+performance_usd_aud = performance_summaries(nns_usd_aud, "USD_AUD", true_path=params_usd_aud["data"], only_nn_hist=only_nn_hists)
 performance_usd_gbp = performance_summaries(nns_usd_gbp, "USD_GBP", true_path=params_usd_gbp["data"], only_nn_hist=only_nn_hists)
 performance_usd_nzd = performance_summaries(nns_usd_nzd, "USD_NZD", true_path=params_usd_nzd["data"], only_nn_hist=only_nn_hists)
 performance_cad_usd = performance_summaries(nns_cad_usd, "CAD_USD", true_path=params_cad_usd["data"], only_nn_hist=only_nn_hists)
