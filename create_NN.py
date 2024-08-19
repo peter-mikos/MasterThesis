@@ -156,7 +156,7 @@ def performance_summary(NN, test_paths, strike, CCY, Moneyness, true_path, only_
     if only_nn_hist:
         plt.hist(wealth_NN)
         plt.xlabel("terminal wealth - payoffs")
-        plt.title(CCY + " " + Moneyness + " - " + "Neural Network Losses")
+        plt.title(CCY + " " + Moneyness + " - " + "Neural Network P&L")
         plt.savefig("plots/" + CCY + "_" + Moneyness + "_NN" + ".png", format="png")
         plt.clf()
     else:
